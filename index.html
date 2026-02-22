@@ -3,56 +3,53 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>神鉄ALERT - 商談用決定版</title>
+    <title>神鉄ALERT - 鈴蘭台駅プロトタイプ</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     <link href="https://fonts.googleapis.com/css2?family=Archivo+Narrow:wght@700&display=swap" rel="stylesheet">
     <style>
-        :root { --brand-color: #e60012; } /* 神鉄レッド */
+        :root { --shintetsu-red: #e60012; }
         body { font-family: 'Helvetica Neue', Arial, sans-serif; transition: all 0.4s; overflow: hidden; margin: 0; }
         .condensed-font { font-family: 'Archivo Narrow', sans-serif; transform: scaleX(0.85); letter-spacing: -0.02em; display: flex; align-items: baseline; justify-content: center; }
         .zebra-pattern { background: linear-gradient(45deg, #FFD700 25%, #000 25%, #000 50%, #FFD700 50%, #FFD700 75%, #000 75%, #000); background-size: 40px 40px; }
-        .train-card { cursor: pointer; transition: transform 0.2s, background-color 0.2s; }
-        .selected-train { border: 2.5px solid var(--brand-color) !important; background-color: white !important; opacity: 1 !important; transform: scale(1.02); z-index: 10; box-shadow: 0 4px 12px rgba(230,0,18,0.2); }
+        .train-card { cursor: pointer; transition: transform 0.2s, background-color 0.2s; border: 1px solid #eee; }
+        .selected-train { border: 2.5px solid var(--shintetsu-red) !important; background-color: white !important; opacity: 1 !important; transform: scale(1.02); z-index: 10; box-shadow: 0 4px 15px rgba(230,0,18,0.15); }
     </style>
 </head>
 <body class="bg-white text-black">
 
     <div id="app" class="h-screen flex flex-col relative pb-[80px]">
-        <div class="bg-gray-100 p-2 flex flex-wrap gap-2 text-[10px] border-b">
-            <div class="p-1 rounded border bg-white font-bold flex items-center gap-1">
-                <i data-lucide="train" class="w-3 h-3 text-red-600"></i> 神戸電鉄 デモモード
+        <div class="bg-gray-100 p-2 flex items-center gap-2 text-[10px] border-b">
+            <div class="flex items-center gap-1 font-bold text-red-600">
+                <i data-lucide="train" class="w-3 h-3"></i> 神戸電鉄：鈴蘭台駅
             </div>
-            <select id="station-selector" onchange="resetToFirst()" class="p-1 rounded border bg-white font-bold text-red-600">
-                <option value="鈴蘭台">鈴蘭台 駅</option>
-                <option value="谷上">谷上 駅</option>
-                <option value="岡場">岡場 駅</option>
-            </select>
-            <button onclick="toggleSpeed()" id="speed-btn" class="bg-black text-white px-2 py-1 rounded">10倍速OFF</button>
+            <div class="ml-auto flex gap-2">
+                <button onclick="toggleSpeed()" id="speed-btn" class="bg-black text-white px-2 py-1 rounded">10倍速OFF</button>
+            </div>
         </div>
 
         <div id="top-zebra" class="h-6 w-full zebra-pattern opacity-0 transition-opacity duration-500"></div>
 
-        <div class="flex-grow flex flex-col items-center justify-center px-2 text-center">
-            <h1 id="station-display" class="text-xl font-black mb-0.5 opacity-40">---駅</h1>
+        <div class="flex-grow flex flex-col items-center justify-center px-4 text-center">
+            <h1 class="text-xl font-black mb-0.5 opacity-40 italic">SUZURANDAI STATION</h1>
             
-            <div id="train-type-label" class="text-xl font-black italic tracking-tighter transition-all">---</div>
+            <div id="train-type-label" class="text-2xl font-black italic tracking-tighter transition-all">---</div>
             
             <p id="warning-text" class="text-lg font-bold mb-1 tracking-[0.4em] hidden text-red-600">WARNING</p>
             
-            <p id="timer-label" class="text-xs font-bold tracking-[0.4em] text-gray-400 mt-3 mb-[-8px]">発車まで あと</p>
+            <p id="timer-label" class="text-xs font-bold tracking-[0.4em] text-gray-400 mt-4 mb-[-10px]">発車まで あと</p>
 
-            <div id="timer-display" class="condensed-font text-[95px] sm:text-[110px] leading-none font-bold transition-colors">
+            <div id="timer-display" class="condensed-font text-[100px] sm:text-[120px] leading-none font-bold transition-colors">
                 <span id="min">00</span><span class="mx-1 text-[35px]">分</span>
                 <span id="sec">00</span><span class="mx-1 text-[35px]">秒</span>
                 <span id="ms" class="text-[45px] ml-1">00</span>
             </div>
 
-            <div id="station-label" class="mt-2 px-8 py-1 rounded-full text-[11px] font-bold text-white shadow-md transition-all brand-bg" style="background-color: var(--brand-color);">
+            <div class="mt-2 px-10 py-1.5 rounded-full text-xs font-bold text-white shadow-md bg-[#e60012]">
                 新開地 方面
             </div>
 
-            <div class="mt-8 flex flex-col gap-1.5 w-full max-w-[320px]" id="train-list">
+            <div class="mt-8 flex flex-col gap-2 w-full max-w-[340px]" id="train-list">
                 </div>
         </div>
 
@@ -60,76 +57,66 @@
     </div>
 
     <div id="ad-container" class="fixed bottom-0 left-0 w-full h-[80px] bg-white flex items-center p-3 border-t-2 border-gray-100 z-50">
-        <div id="ad-icon-bg" class="w-12 h-12 rounded-lg flex items-center justify-center text-white mr-3" style="background-color: var(--brand-color);">
+        <div id="ad-icon-bg" class="w-12 h-12 rounded-lg flex items-center justify-center text-white mr-3 bg-[#e60012]">
             <i data-lucide="coffee"></i>
         </div>
         <div class="flex-grow text-left">
-            <p class="text-[9px] font-bold text-red-600" id="ad-label">SHINTETSU SHOP INFO</p>
-            <p class="text-xs font-bold leading-tight" id="ad-text">鈴蘭台駅売店で使える！<br>淹れたてコーヒー100円クーポン</p>
+            <p class="text-[9px] font-bold text-red-600">鈴蘭台駅前 SHOP INFO</p>
+            <p class="text-xs font-bold leading-tight" id="ad-text">発車まであと10分あるなら。<br>駅ビル「ベルスト」でカフェタイム</p>
         </div>
-        <button class="text-white px-3 py-2 rounded-lg text-[10px] font-bold shrink-0" id="ad-btn" style="background-color: var(--brand-color);">クーポン</button>
+        <button class="bg-[#e60012] text-white px-3 py-2 rounded-lg text-[10px] font-bold shrink-0 shadow-sm">Map</button>
     </div>
 
     <script>
-        const SHINTETSU_DATA = {
-            stations: {
-                "鈴蘭台": [
-                    { type: "普通", time: "12:15", color: "#333333", offset: 300000 },
-                    { type: "準急", time: "12:30", color: "#448833", offset: 1200000 },
-                    { type: "急行", time: "12:45", color: "#f39700", offset: 2100000 }
-                ],
-                "谷上": [
-                    { type: "普通", time: "13:05", color: "#333333", offset: 400000 },
-                    { type: "急行", time: "13:20", color: "#f39700", offset: 1300000 },
-                    { type: "特急", time: "13:40", color: "#ed1c24", offset: 2500000 }
-                ],
-                "岡場": [
-                    { type: "準急", time: "14:10", color: "#448833", offset: 300000 },
-                    { type: "普通", time: "14:25", color: "#333333", offset: 1200000 },
-                    { type: "急行", time: "14:40", color: "#f39700", offset: 2100000 }
-                ]
-            }
-        };
+        // 実際の神鉄の種別色に準拠
+        const TRAINS = [
+            { type: "普通", time: "10:12", color: "#333333", offset: 300000 },  // 5分後
+            { type: "準急", time: "10:25", color: "#448833", offset: 1080000 }, // 18分後
+            { type: "急行", time: "10:40", color: "#f39700", offset: 1980000 }  // 33分後
+        ];
 
-        let activeTrainIdx = 0;
-        let timeLeft = 0;
+        let activeIdx = 0;
+        let timeLeft = TRAINS[0].offset;
         let isHighSpeed = false;
 
-        function resetToFirst() {
-            activeTrainIdx = 0;
-            renderTrainList();
-            selectTrain(0);
-        }
-
-        function renderTrainList() {
-            const stationName = document.getElementById('station-selector').value;
-            const trains = SHINTETSU_DATA.stations[stationName];
+        function renderList() {
             const listContainer = document.getElementById('train-list');
-            
             const labels = ["次便", "次々便", "次々々便"];
-            listContainer.innerHTML = trains.map((t, idx) => `
-                <div onclick="selectTrain(${idx})" id="card-${idx}" class="train-card flex justify-between items-center bg-gray-50 px-4 py-2 rounded-xl border-l-4 opacity-40 transition-all shadow-sm" style="border-left-color: ${t.color}">
-                    <span class="text-[9px] font-bold text-gray-400 w-12 text-left">${labels[idx]}</span>
-                    <span class="font-black text-sm w-16 text-left" style="color:${t.color}">${t.type}</span>
-                    <span class="font-bold text-sm flex-grow text-right">${t.time}発</span>
+            
+            listContainer.innerHTML = TRAINS.map((t, idx) => `
+                <div onclick="selectTrain(${idx})" id="card-${idx}" class="train-card flex justify-between items-center bg-gray-50 px-4 py-3 rounded-xl border-l-4 opacity-40 transition-all shadow-sm" style="border-left-color: ${t.color}">
+                    <div class="flex flex-col items-start">
+                        <span class="text-[9px] font-bold text-gray-400">${labels[idx]}</span>
+                        <span class="font-black text-sm" style="color:${t.color}">${t.type}</span>
+                    </div>
+                    <span class="font-bold text-lg">${t.time}<span class="text-xs ml-0.5">発</span></span>
                 </div>
             `).join('');
+            updateSelectionUI();
         }
 
         function selectTrain(idx) {
-            const stationName = document.getElementById('station-selector').value;
-            const train = SHINTETSU_DATA.stations[stationName][idx];
-            
-            activeTrainIdx = idx;
-            timeLeft = train.offset;
-            
-            document.getElementById('station-display').innerText = stationName;
-            document.getElementById('train-type-label').innerText = train.type;
-            document.getElementById('train-type-label').style.color = train.color;
+            activeIdx = idx;
+            timeLeft = TRAINS[idx].offset;
+            updateSelectionUI();
+        }
+
+        function updateSelectionUI() {
+            const t = TRAINS[activeIdx];
+            document.getElementById('train-type-label').innerText = t.type;
+            document.getElementById('train-type-label').style.color = t.color;
             
             document.querySelectorAll('.train-card').forEach((c, i) => {
-                c.classList.toggle('selected-train', i === idx);
+                c.classList.toggle('selected-train', i === activeIdx);
             });
+
+            // 広告文の動的切り替え
+            const adText = document.getElementById('ad-text');
+            if (activeIdx === 0) {
+                adText.innerHTML = "駅売店「セブン-イレブン」<br>神鉄売店限定クーポン配布中！";
+            } else {
+                adText.innerHTML = "発車まであと10分以上。<br>駅ビル「ベルスト」でカフェタイム";
+            }
         }
 
         function toggleSpeed() {
@@ -174,13 +161,12 @@
                 topZ.style.opacity = "0"; botZ.style.opacity = "0";
                 warn.classList.add('hidden');
                 timerLabel.style.color = "#9ca3af";
-                const stationName = document.getElementById('station-selector').value;
-                timer.style.color = SHINTETSU_DATA.stations[stationName][activeTrainIdx].color;
+                timer.style.color = TRAINS[activeIdx].color;
             }
         }
 
         setInterval(update, 10);
-        resetToFirst();
+        renderList();
         lucide.createIcons();
     </script>
 </body>
