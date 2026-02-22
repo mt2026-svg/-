@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>鈴蘭台駅タイマー</title>
+    <title>神鉄タイマー - 鈴蘭台駅</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     <link href="https://fonts.googleapis.com/css2?family=Archivo+Narrow:wght@700&display=swap" rel="stylesheet">
@@ -13,6 +13,7 @@
             transition: background-color 0.5s, color 0.5s; 
             margin: 0;
             overflow: hidden;
+            background-color: white;
         }
         .condensed-font {
             font-family: 'Archivo Narrow', sans-serif;
@@ -26,42 +27,66 @@
             background: linear-gradient(45deg, #FFD700 25%, #000 25%, #000 50%, #FFD700 50%, #FFD700 75%, #000 75%, #000);
             background-size: 40px 40px;
         }
+        /* 広告エリアの固定 */
+        #ad-container {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 60px; /* 標準的なモバイルバナーサイズ */
+            background-color: #f0f0f0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-top: 1px solid #ddd;
+            font-size: 10px;
+            color: #999;
+            z-index: 100;
+        }
     </style>
 </head>
-<body class="bg-white text-black">
-    <div id="app" class="h-screen flex flex-col justify-between relative">
-        <div id="top-zebra" class="h-8 w-full zebra-pattern opacity-0 transition-opacity duration-500"></div>
+<body class="text-black">
+    <div id="app" class="h-screen flex flex-col relative pb-[60px]"> <div id="top-zebra" class="h-6 w-full zebra-pattern opacity-0 transition-opacity duration-500"></div>
 
         <div class="flex-grow flex flex-col items-center justify-center px-2 text-center">
-            <div id="icon-container" class="mb-2 opacity-0 h-0 overflow-hidden transition-all duration-500">
-                <i data-lucide="alert-triangle" class="w-32 h-32 mx-auto"></i>
-            </div>
+            <h1 id="status-label" class="text-4xl font-black tracking-widest mb-1">鈴蘭台駅</h1>
+            <p id="warning-text" class="text-lg font-bold mb-2 tracking-[0.4em] hidden text-red-600">WARNING</p>
             
-            <h1 id="status-label" class="text-5xl font-black tracking-widest mb-1 transition-all">鈴蘭台駅</h1>
-            <p id="warning-text" class="text-xl font-bold mb-4 tracking-[0.4em] hidden">WARNING</p>
-            
-            <div id="timer-display" class="condensed-font text-[100px] sm:text-[120px] leading-none font-bold text-red-600 transition-colors">
-                <span id="min">00</span>
-                <span class="mx-1 text-[60px] font-sans">分</span>
-                <span id="sec">00</span>
-                <span class="mx-1 text-[60px] font-sans">秒</span>
-                <span id="ms">00</span>
+            <div id="timer-display" class="condensed-font text-[90px] sm:text-[110px] leading-none font-bold text-red-600 transition-colors">
+                <span id="min">00</span><span class="mx-1 text-[40px] font-sans">分</span>
+                <span id="sec">00</span><span class="mx-1 text-[40px] font-sans">秒</span>
+                <span id="ms" class="text-[60px] ml-1">00</span>
             </div>
 
-            <div id="station-label" class="mt-6 px-10 py-1.5 rounded-full text-lg font-bold bg-red-600 text-white transition-all">
+            <div class="mt-2 flex flex-col items-center opacity-80">
+                <p class="text-xs font-bold text-gray-500 uppercase tracking-tighter">Next After Next</p>
+                <div id="sub-timer" class="condensed-font text-[35px] font-bold text-gray-700">
+                    <span id="sub-min">00</span><span class="text-sm mx-0.5">m</span>
+                    <span id="sub-sec">00</span><span class="text-sm mx-0.5">s</span>
+                </div>
+            </div>
+
+            <div id="station-label" class="mt-4 px-8 py-1 rounded-full text-md font-bold bg-red-600 text-white shadow-md">
                 新開地方面
             </div>
 
-            <p id="next-train-info" class="mt-8 text-xl font-bold opacity-80">次の電車 : --:--</p>
+            <div class="mt-6 space-y-1">
+                <p id="next-train-info" class="text-lg font-bold opacity-90">次便: --:--</p>
+                <p id="sub-next-info" class="text-sm font-bold opacity-60">次々便: --:--</p>
+            </div>
         </div>
 
-        <div class="flex gap-4 p-8 max-w-sm mx-auto w-full">
-            <button id="btn-weekday" onclick="setMode('weekday')" class="flex-1 py-4 rounded-2xl font-bold border-2 transition-all">平日</button>
-            <button id="btn-holiday" onclick="setMode('holiday')" class="flex-1 py-4 rounded-2xl font-bold border-2 transition-all">土休日</button>
+        <div class="flex gap-2 p-4 max-w-sm mx-auto w-full mb-2">
+            <button id="btn-weekday" onclick="setMode('weekday')" class="flex-1 py-2 rounded-xl text-sm font-bold border-2 transition-all">平日</button>
+            <button id="btn-holiday" onclick="setMode('holiday')" class="flex-1 py-2 rounded-xl text-sm font-bold border-2 transition-all">土休日</button>
         </div>
 
-        <div id="bottom-zebra" class="h-10 w-full zebra-pattern opacity-0 transition-opacity duration-500"></div>
+        <div id="bottom-zebra" class="h-8 w-full zebra-pattern opacity-0 transition-opacity duration-500"></div>
     </div>
+
+    <div id="ad-container">
+        <p>ADVERTISEMENT</p>
+        </div>
 
     <script>
         const TIMETABLE = {
@@ -80,65 +105,67 @@
             const now = new Date();
             const timeStr = now.getHours().toString().padStart(2, '0') + ":" + now.getMinutes().toString().padStart(2, '0');
             const schedule = TIMETABLE[currentMode];
-            const next = schedule.find(t => t > timeStr) || schedule[0];
             
-            const [nh, nm] = next.split(':').map(Number);
-            const target = new Date();
-            target.setHours(nh, nm, 0, 0);
-            if (target < now) target.setDate(target.getDate() + 1);
-            
-            const diffMs = target - now;
-            const diffSecTotal = Math.floor(diffMs / 1000);
-            
-            const m = Math.floor(diffSecTotal / 60);
-            const s = diffSecTotal % 60;
-            const ms = Math.floor((diffMs % 1000) / 10);
+            // 次便と次々便を取得
+            const nextIdx = schedule.findIndex(t => t > timeStr);
+            const next = nextIdx !== -1 ? schedule[nextIdx] : schedule[0];
+            const subNext = nextIdx !== -1 && schedule[nextIdx+1] ? schedule[nextIdx+1] : schedule[nextIdx+1 === schedule.length ? 0 : nextIdx+1] || schedule[1];
 
-            document.getElementById('min').innerText = m.toString().padStart(2, '0');
-            document.getElementById('sec').innerText = s.toString().padStart(2, '0');
-            document.getElementById('ms').innerText = ms.toString().padStart(2, '0');
-            document.getElementById('next-train-info').innerText = "次の電車 : " + next;
+            function getDiff(targetStr) {
+                const [nh, nm] = targetStr.split(':').map(Number);
+                const target = new Date();
+                target.setHours(nh, nm, 0, 0);
+                if (target < now) target.setDate(target.getDate() + 1);
+                return { ms: target - now, time: targetStr };
+            }
 
-            document.getElementById('btn-weekday').className = `flex-1 py-4 rounded-2xl font-bold border-2 ${currentMode === 'weekday' ? 'border-red-500 bg-white text-black shadow-md' : 'border-transparent bg-gray-200 text-gray-400 opacity-60'}`;
-            document.getElementById('btn-holiday').className = `flex-1 py-4 rounded-2xl font-bold border-2 ${currentMode === 'holiday' ? 'border-red-500 bg-white text-black shadow-md' : 'border-transparent bg-gray-200 text-gray-400 opacity-60'}`;
+            const diff1 = getDiff(next);
+            const diff2 = getDiff(subNext);
 
+            // メインタイマー更新
+            const d1Sec = Math.floor(diff1.ms / 1000);
+            document.getElementById('min').innerText = Math.floor(d1Sec / 60).toString().padStart(2, '0');
+            document.getElementById('sec').innerText = (d1Sec % 60).toString().padStart(2, '0');
+            document.getElementById('ms').innerText = Math.floor((diff1.ms % 1000) / 10).toString().padStart(2, '0');
+
+            // 次々便タイマー更新
+            const d2Sec = Math.floor(diff2.ms / 1000);
+            document.getElementById('sub-min').innerText = Math.floor(d2Sec / 60).toString().padStart(2, '0');
+            document.getElementById('sub-sec').innerText = (d2Sec % 60).toString().padStart(2, '0');
+
+            document.getElementById('next-train-info').innerText = "次便: " + diff1.time;
+            document.getElementById('sub-next-info').innerText = "次々便: " + diff2.time;
+
+            // UI状態管理
             const body = document.body;
             const topZ = document.getElementById('top-zebra');
             const botZ = document.getElementById('bottom-zebra');
-            const icon = document.getElementById('icon-container');
             const warn = document.getElementById('warning-text');
-            const label = document.getElementById('status-label');
             const timer = document.getElementById('timer-display');
-            const station = document.getElementById('station-label');
+            const label = document.getElementById('status-label');
 
-            if (diffSecTotal <= 60) {
-                body.className = "bg-black text-white";
+            if (d1Sec <= 60) {
+                body.style.backgroundColor = "black"; body.style.color = "white";
                 topZ.style.opacity = "1"; botZ.style.opacity = "1";
-                icon.className = "mb-2 opacity-100 h-32 transition-all";
-                warn.classList.remove('hidden');
-                label.innerText = "警告";
+                warn.classList.remove('hidden'); label.innerText = "警告";
                 timer.classList.replace('text-red-600', 'text-white');
-                station.className = "mt-6 px-10 py-1.5 rounded-full text-lg font-bold bg-transparent border border-white text-gray-400 transition-all";
-            } else if (diffSecTotal <= 300) {
-                body.className = "bg-[#FFD700] text-black";
+            } else if (d1Sec <= 300) {
+                body.style.backgroundColor = "#FFD700"; body.style.color = "black";
                 topZ.style.opacity = "1"; botZ.style.opacity = "1";
-                icon.className = "mb-2 opacity-100 h-32 transition-all";
-                warn.classList.remove('hidden');
-                label.innerText = "警告";
+                warn.classList.remove('hidden'); label.innerText = "警告";
                 timer.classList.replace('text-white', 'text-red-600');
-                station.className = "mt-6 px-10 py-1.5 rounded-full text-lg font-bold bg-white/40 text-black transition-all";
             } else {
-                body.className = "bg-white text-black";
+                body.style.backgroundColor = "white"; body.style.color = "black";
                 topZ.style.opacity = "0"; botZ.style.opacity = "0";
-                icon.className = "mb-2 opacity-0 h-0 overflow-hidden transition-all";
-                warn.classList.add('hidden');
-                label.innerText = "鈴蘭台駅";
+                warn.classList.add('hidden'); label.innerText = "鈴蘭台駅";
                 timer.classList.replace('text-white', 'text-red-600');
-                station.className = "mt-6 px-10 py-1.5 rounded-full text-lg font-bold bg-red-600 text-white transition-all";
             }
+
+            // ボタン
+            document.getElementById('btn-weekday').className = `flex-1 py-2 rounded-xl text-sm font-bold border-2 ${currentMode === 'weekday' ? 'border-red-500 bg-white text-black' : 'border-transparent bg-gray-200 text-gray-400'}`;
+            document.getElementById('btn-holiday').className = `flex-1 py-2 rounded-xl text-sm font-bold border-2 ${currentMode === 'holiday' ? 'border-red-500 bg-white text-black' : 'border-transparent bg-gray-200 text-gray-400'}`;
         }
 
-        lucide.createIcons();
         setInterval(updateUI, 10);
         updateUI();
     </script>
