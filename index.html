@@ -3,159 +3,153 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>鈴蘭台駅タイマー</title>
+    <title>鈴蘭台 爆走タイマー</title>
     <style>
+        @import url('https://fonts.googleapis.com/css2?family=Bangers&family=Noto+Sans+JP:wght@900&display=swap');
+
         :root {
-            --shintetsu-red: #d62828;
-            --bg-color: #f0f2f5;
-            --card-bg: #ffffff;
+            --comic-yellow: #ffee00;
+            --comic-red: #ff3300;
+            --comic-blue: #0088ff;
+            --border-width: 4px;
+        }
+
+        /* 1分を切った時に body に付与するクラス */
+        body.last-minute {
+            filter: grayscale(100%); /* 全体をグレーにする */
+            transition: filter 0.5s ease-in-out;
         }
 
         body {
             margin: 0;
-            padding: 20px;
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-            background-color: var(--bg-color);
+            background: radial-gradient(circle, #333 10%, transparent 10%), #555;
+            background-size: 20px 20px;
             display: flex;
             justify-content: center;
             align-items: center;
             min-height: 100vh;
+            font-family: 'Noto Sans JP', sans-serif;
+            overflow: hidden;
+            transition: filter 0.5s ease-in-out;
         }
 
         .app-container {
-            width: 100%;
-            max-width: 400px;
+            width: 90%;
+            max-width: 420px;
+            transform: rotate(-2deg);
         }
 
-        .card {
-            background: var(--card-bg);
-            border-radius: 24px;
-            padding: 30px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.08);
-            text-align: center;
+        .comic-panel {
+            background: var(--comic-yellow);
+            border: var(--border-width) solid #000;
+            padding: 20px;
+            box-shadow: 15px 15px 0px #000;
             position: relative;
-            overflow: hidden;
         }
 
-        .station-label {
-            font-size: 0.9rem;
-            color: #666;
-            margin-bottom: 8px;
-            letter-spacing: 0.05em;
-        }
-
-        .station-name {
-            font-size: 1.8rem;
-            font-weight: 800;
-            color: #333;
-            margin-bottom: 5px;
-        }
-
-        .destination {
+        .station-box {
+            background: #000;
+            color: #fff;
+            padding: 5px 15px;
             display: inline-block;
-            background: var(--shintetsu-red);
+            font-size: 1.2rem;
+            margin-bottom: 10px;
+            font-weight: bold;
+        }
+
+        .destination-tag {
+            background: var(--comic-blue);
             color: white;
-            padding: 4px 12px;
-            border-radius: 50px;
-            font-size: 0.85rem;
-            margin-bottom: 30px;
+            padding: 2px 10px;
+            border: 2px solid #000;
+            font-size: 0.9rem;
+            display: block;
+            width: fit-content;
+            margin-bottom: 20px;
+        }
+
+        .label-main {
+            font-family: 'Bangers', cursive;
+            font-size: 2.5rem;
+            color: #000;
+            margin: 0;
+            line-height: 1;
         }
 
         #timer {
-            font-size: 5rem;
+            font-family: 'Bangers', cursive;
+            font-size: 5.5rem;
+            color: var(--comic-red);
+            text-shadow: 4px 4px 0px #000;
+            margin: 10px 0;
+            transition: all 0.2s ease-in-out;
+            display: block;
+            white-space: nowrap;
+        }
+
+        /* 5分を切った時の巨大化と震え */
+        #timer.hurry {
+            font-size: 8.5rem;
+            transform: scale(1.1) rotate(2deg);
+            animation: shake 0.1s infinite;
+        }
+
+        @keyframes shake {
+            0% { transform: translate(1px, 1px) rotate(2deg); }
+            50% { transform: translate(-1px, -1px) rotate(2deg); }
+            100% { transform: translate(1px, -1px) rotate(2deg); }
+        }
+
+        #next-train-info {
+            background: #fff;
+            border: 3px solid #000;
             font-weight: 900;
-            color: var(--shintetsu-red);
-            line-height: 1;
-            margin-bottom: 10px;
-            font-variant-numeric: tabular-nums;
-        }
-
-        .unit {
-            font-size: 1.2rem;
-            color: #999;
-            margin-left: 5px;
-        }
-
-        #next-train {
-            font-size: 1.1rem;
-            color: #444;
-            font-weight: 600;
-            margin-bottom: 25px;
-        }
-
-        /* 進行状況バー */
-        .progress-container {
-            width: 100%;
-            height: 8px;
-            background: #eee;
-            border-radius: 10px;
-            margin-bottom: 30px;
-        }
-
-        #progress-bar {
-            width: 50%;
-            height: 100%;
-            background: var(--shintetsu-red);
-            border-radius: 10px;
-            transition: width 1s linear;
+            padding: 5px;
+            margin-top: 20px;
+            transform: skew(-10deg);
         }
 
         .btn-group {
+            margin-top: 25px;
             display: flex;
             gap: 10px;
-            background: #f0f0f0;
-            padding: 5px;
-            border-radius: 12px;
         }
 
         button {
             flex: 1;
-            border: none;
-            padding: 12px;
-            border-radius: 8px;
-            font-size: 0.9rem;
-            font-weight: bold;
+            font-family: 'Bangers', cursive;
+            font-size: 1.5rem;
+            padding: 10px;
+            border: 3px solid #000;
             cursor: pointer;
-            transition: 0.2s;
+            box-shadow: 4px 4px 0px #000;
         }
 
-        button.active {
-            background: white;
-            color: var(--shintetsu-red);
-            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-        }
-
-        button.inactive {
-            background: transparent;
-            color: #888;
-        }
+        button.active { background: var(--comic-red); color: white; }
+        button.inactive { background: #fff; color: #000; }
     </style>
 </head>
 <body>
 
 <div class="app-container">
-    <div class="card">
-        <div class="station-label">NEXT TRAIN</div>
-        <div class="station-name">鈴蘭台</div>
-        <div class="destination">新開地方面</div>
-
-        <div id="timer">00:00</div>
+    <div class="comic-panel">
+        <div class="station-box">鈴蘭台</div>
+        <div class="destination-tag">新開地方面</div>
         
-        <div class="progress-container">
-            <div id="progress-bar"></div>
-        </div>
-
-        <div id="next-train">--:-- 発</div>
+        <p class="label-main">NEXT TRAIN IN...</p>
+        
+        <div id="timer">00:00:00</div>
+        
+        <div id="next-train-info">DEPARTURE: --:--</div>
 
         <div class="btn-group">
-            <button id="btn-weekday" class="active" onclick="setMode('weekday')">平日</button>
-            <button id="btn-holiday" class="inactive" onclick="setMode('holiday')">土休日</button>
+            <button id="btn-weekday" class="active" onclick="setMode('weekday')">WEEKDAY</button>
+            <button id="btn-holiday" class="inactive" onclick="setMode('holiday')">HOLIDAY</button>
         </div>
     </div>
 </div>
 
 <script>
-    // 時刻表データ（前回と同じ）
     const schedules = {
         weekday: ["04:55", "05:13", "05:27", "05:40", "05:51", "06:01", "06:10", "06:18", "06:26", "06:33", "06:40", "06:47", "06:54", "07:01", "07:07", "07:13", "07:19", "07:25", "07:31", "07:37", "07:43", "07:49", "07:55", "08:01", "08:08", "08:15", "08:22", "08:30", "08:38", "08:46", "08:54", "09:02", "09:10", "09:18", "09:28", "09:38", "09:48", "09:58", "10:08", "10:23", "10:38", "10:53", "11:08", "11:23", "11:38", "11:53", "12:08", "12:23", "12:38", "12:53", "13:08", "13:23", "13:38", "13:53", "14:08", "14:23", "14:38", "14:53", "15:08", "15:23", "15:38", "15:53", "16:08", "16:21", "16:33", "16:45", "16:57", "17:09", "17:21", "17:33", "17:45", "17:57", "18:09", "18:21", "18:33", "18:45", "18:57", "19:09", "19:21", "19:33", "19:45", "19:57", "20:10", "20:25", "20:40", "20:55", "21:10", "21:25", "21:40", "21:55", "22:10", "22:25", "22:45", "23:05", "23:25", "23:45", "00:05"],
         holiday: ["04:55", "05:13", "05:27", "05:40", "05:54", "06:07", "06:20", "06:33", "06:45", "06:57", "07:09", "07:21", "07:33", "07:45", "07:57", "08:09", "08:21", "08:33", "08:45", "08:57", "09:09", "09:23", "09:38", "09:53", "10:08", "10:23", "10:38", "10:53", "11:08", "11:23", "11:38", "11:53", "12:08", "12:23", "12:38", "12:53", "13:08", "13:23", "13:38", "13:53", "14:08", "14:23", "14:38", "14:53", "15:08", "15:23", "15:38", "15:53", "16:08", "16:23", "16:38", "16:53", "17:08", "17:23", "17:38", "17:53", "18:08", "18:23", "18:38", "18:53", "19:08", "19:23", "19:40", "19:55", "20:10", "20:25", "20:40", "20:55", "21:10", "21:25", "21:40", "21:55", "22:15", "22:35", "22:55", "23:15", "23:35", "23:55"]
@@ -165,40 +159,4 @@
 
     function setMode(mode) {
         currentMode = mode;
-        document.getElementById('btn-weekday').className = (mode === 'weekday') ? 'active' : 'inactive';
-        document.getElementById('btn-holiday').className = (mode === 'holiday') ? 'active' : 'inactive';
-        updateTimer();
-    }
-
-    function updateTimer() {
-        const now = new Date();
-        const nowStr = now.getHours().toString().padStart(2, '0') + ":" + now.getMinutes().toString().padStart(2, '0');
-        
-        const timetable = schedules[currentMode];
-        let nextIndex = timetable.findIndex(t => t > nowStr);
-        if (nextIndex === -1) nextIndex = 0;
-        let next = timetable[nextIndex];
-        
-        const [h, m] = next.split(':').map(Number);
-        const target = new Date();
-        target.setHours(h, m, 0);
-        if (target < now) target.setDate(target.getDate() + 1);
-        
-        const diff = Math.floor((target - now) / 1000);
-        const min = Math.floor(diff / 60);
-        const sec = diff % 60;
-
-        // プログレスバーの計算（前の電車からの経過時間。簡易的に15分間隔を100%として計算）
-        const progress = Math.max(0, Math.min(100, (1 - (diff / 900)) * 100));
-        document.getElementById('progress-bar').style.width = progress + "%";
-
-        document.getElementById('timer').innerHTML = `${min}<span class="unit">分</span>${sec.toString().padStart(2, '0')}<span class="unit">秒</span>`;
-        document.getElementById('next-train').innerText = `次回の発車時刻: ${next}`;
-    }
-
-    setMode(currentMode);
-    setInterval(updateTimer, 1000);
-</script>
-
-</body>
-</html>
+        document.getElementById('btn-weekday').className = (mode === 'weekday') ? 'active'
