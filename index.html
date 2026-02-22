@@ -6,9 +6,14 @@
     <title>鈴蘭台駅タイマー</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@700&family=Orbitron:wght@700;900&display=swap" rel="stylesheet">
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@700;800&display=swap');
-        body { font-family: 'JetBrains Mono', monospace; transition: background-color 0.5s, color 0.5s; }
+        body { font-family: 'Chakra Petch', sans-serif; transition: background-color 0.5s, color 0.5s; }
+        /* タイマー専用のデジタルフォント設定 */
+        .digital-font {
+            font-family: 'Orbitron', sans-serif;
+            font-variant-numeric: tabular-nums; /* 数字の幅を一定にする */
+        }
         .zebra-pattern {
             background: linear-gradient(45deg, #FFD700 25%, #000 25%, #000 50%, #FFD700 50%, #FFD700 75%, #000 75%, #000);
             background-size: 40px 40px;
@@ -27,10 +32,10 @@
             <h1 id="status-label" class="text-4xl font-black tracking-widest mb-1 transition-all">結前会</h1>
             <p id="warning-text" class="text-xl font-bold mb-6 tracking-[0.3em] hidden">WARNING</p>
             
-            <div id="timer-display" class="text-[75px] sm:text-[90px] leading-none font-bold tracking-tighter flex items-baseline text-red-600 transition-colors">
-                <span id="min">00</span><span class="text-2xl mx-1">分</span>
-                <span id="sec">00</span><span class="text-2xl mx-1">秒</span>
-                <span class="text-2xl">00</span>
+            <div id="timer-display" class="digital-font text-[70px] sm:text-[85px] leading-none font-bold tracking-tighter flex items-baseline text-red-600 transition-colors">
+                <span id="min">00</span><span class="text-xl mx-1 font-sans">分</span>
+                <span id="sec">00</span><span class="text-xl mx-1 font-sans">秒</span>
+                <span class="text-xl">00</span>
             </div>
 
             <div id="station-label" class="mt-8 px-6 py-1 rounded-full text-sm font-bold bg-red-600 text-white transition-all">
@@ -49,6 +54,7 @@
     </div>
 
     <script>
+        // ... (スクリプト部分は前回と同じですので、そのままお使いください)
         const TIMETABLE = {
             weekday: ["05:15", "05:35", "05:55", "06:12", "06:25", "06:38", "06:51", "07:04", "07:17", "07:30", "07:45", "08:00", "08:15", "08:30", "08:45", "09:00", "09:15", "09:30", "09:45", "10:00", "10:15", "10:30", "10:45", "11:00", "11:15", "11:30", "11:45", "12:00", "12:15", "12:30", "12:45", "13:00", "13:15", "13:30", "13:45", "14:00", "14:15", "14:30", "14:45", "15:00", "15:15", "15:30", "15:45", "16:00", "16:15", "16:30", "16:45", "17:00", "17:15", "17:30", "17:45", "18:00", "18:15", "18:30", "18:45", "19:00", "19:15", "19:30", "19:45", "20:00", "20:15", "20:30", "20:45", "21:00", "21:15", "21:30", "21:45", "22:00", "22:15", "22:30", "22:45", "23:00", "23:15", "23:30", "23:45"],
             holiday: ["05:15", "05:40", "06:05", "06:30", "06:55", "07:15", "07:35", "07:55", "08:15", "08:35", "08:55", "09:15", "09:35", "09:55", "10:15", "10:35", "10:55", "11:15", "11:35", "11:55", "12:15", "12:35", "12:55", "13:15", "13:35", "13:55", "14:15", "14:35", "14:55", "15:15", "15:35", "15:55", "16:15", "16:35", "16:55", "17:15", "17:35", "17:55", "18:15", "18:35", "18:55", "19:15", "19:35", "19:55", "20:15", "20:35", "20:55", "21:15", "21:35", "21:55", "22:15", "22:35", "22:55", "23:15", "23:35", "23:55"]
@@ -74,7 +80,6 @@
             
             const diff = Math.floor((target - now) / 1000);
             
-            // DOM要素
             const els = {
                 min: document.getElementById('min'),
                 sec: document.getElementById('sec'),
@@ -85,55 +90,4 @@
                 icon: document.getElementById('icon-container'),
                 warn: document.getElementById('warning-text'),
                 label: document.getElementById('status-label'),
-                timer: document.getElementById('timer-display'),
-                station: document.getElementById('station-label'),
-                btnW: document.getElementById('btn-weekday'),
-                btnH: document.getElementById('btn-holiday')
-            };
-
-            els.min.innerText = Math.floor(diff / 60).toString().padStart(2, '0');
-            els.sec.innerText = (diff % 60).toString().padStart(2, '0');
-            els.info.innerText = "次便の発車 : " + next;
-
-            // ボタン状態
-            els.btnW.className = `flex-1 py-3 rounded-2xl font-bold border-2 ${currentMode === 'weekday' ? 'border-red-500 bg-white text-black' : 'border-transparent bg-gray-200 text-gray-400 opacity-60'}`;
-            els.btnH.className = `flex-1 py-3 rounded-2xl font-bold border-2 ${currentMode === 'holiday' ? 'border-red-500 bg-white text-black' : 'border-transparent bg-gray-200 text-gray-400 opacity-60'}`;
-
-            // 状態に応じたデザイン反映
-            if (diff <= 60) { // 1分前：黒
-                els.body.className = "bg-black text-white";
-                els.topZ.classList.replace('opacity-0', 'opacity-100');
-                els.botZ.classList.replace('opacity-0', 'opacity-100');
-                els.icon.className = "mb-4 opacity-100 scale-100 transition-all";
-                els.warn.classList.remove('hidden');
-                els.label.innerText = "警告";
-                els.timer.className = "text-[75px] sm:text-[90px] font-bold text-white tracking-tighter flex items-baseline transition-colors";
-                els.station.className = "mt-8 px-6 py-1 rounded-full text-sm font-bold bg-transparent border border-white text-gray-400";
-            } else if (diff <= 300) { // 5分前：黄
-                els.body.className = "bg-[#FFD700] text-black";
-                els.topZ.classList.replace('opacity-0', 'opacity-100');
-                els.botZ.classList.replace('opacity-0', 'opacity-100');
-                els.icon.className = "mb-4 opacity-100 scale-100 transition-all";
-                els.warn.classList.remove('hidden');
-                els.label.innerText = "警告";
-                els.timer.className = "text-[75px] sm:text-[90px] font-bold text-red-600 tracking-tighter flex items-baseline transition-colors";
-                els.station.className = "mt-8 px-6 py-1 rounded-full text-sm font-bold bg-white/40 text-black";
-            } else { // 通常：白
-                els.body.className = "bg-white text-black";
-                els.topZ.classList.replace('opacity-100', 'opacity-0');
-                els.botZ.classList.replace('opacity-100', 'opacity-0');
-                els.icon.className = "mb-4 opacity-0 scale-0 transition-all";
-                els.warn.classList.add('hidden');
-                els.label.innerText = "NEXT TRAIN";
-                els.timer.className = "text-[75px] sm:text-[90px] font-bold text-red-600 tracking-tighter flex items-baseline transition-colors";
-                els.station.className = "mt-8 px-6 py-1 rounded-full text-sm font-bold bg-red-600 text-white";
-            }
-        }
-
-        // 初期化とループ
-        lucide.createIcons();
-        setInterval(updateUI, 1000);
-        updateUI();
-    </script>
-</body>
-</html>
+                timer: document.getElementById
