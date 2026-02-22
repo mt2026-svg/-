@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>神鉄ALERT - 鈴蘭台駅 リアル時刻表</title>
+    <title>神鉄ALERT - 鈴蘭台駅 リアルタイム</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     <link href="https://fonts.googleapis.com/css2?family=Archivo+Narrow:wght@700&display=swap" rel="stylesheet">
@@ -12,26 +12,35 @@
         body { font-family: 'Helvetica Neue', Arial, sans-serif; transition: all 0.4s; overflow: hidden; margin: 0; }
         .condensed-font { font-family: 'Archivo Narrow', sans-serif; transform: scaleX(0.85); letter-spacing: -0.02em; display: flex; align-items: baseline; justify-content: center; }
         .zebra-pattern { background: linear-gradient(45deg, #FFD700 25%, #000 25%, #000 50%, #FFD700 50%, #FFD700 75%, #000 75%, #000); background-size: 40px 40px; }
-        .train-card { cursor: pointer; transition: transform 0.2s, background-color 0.2s; border: 1px solid #eee; }
+        .train-card { cursor: pointer; transition: all 0.2s; border: 1px solid #eee; }
         .selected-train { border: 2.5px solid var(--shintetsu-red) !important; background-color: white !important; opacity: 1 !important; transform: scale(1.02); z-index: 10; box-shadow: 0 4px 15px rgba(230,0,18,0.15); }
+        .toggle-btn { transition: all 0.3s; }
+        .active-day { background-color: var(--shintetsu-red) !important; color: white !important; }
     </style>
 </head>
 <body class="bg-white text-black">
 
     <div id="app" class="h-screen flex flex-col relative pb-[80px]">
-        <div class="bg-gray-100 p-2 flex items-center gap-2 text-[10px] border-b">
-            <div class="flex items-center gap-1 font-bold text-red-600">
-                <i data-lucide="clock" class="w-3 h-3"></i> 鈴蘭台駅：新開地方面（平日ダイヤ反映）
+        <div class="bg-gray-100 p-2 flex items-center justify-between border-b">
+            <div class="flex items-center gap-1 font-bold text-red-600 text-sm">
+                <i data-lucide="map-pin" class="w-4 h-4"></i> 鈴蘭台
             </div>
-            <div id="current-clock" class="ml-auto font-mono font-bold text-gray-500 text-xs">00:00:00</div>
+            
+            <div class="flex bg-gray-200 rounded-lg p-0.5 text-[10px] font-bold">
+                <button id="btn-weekday" onclick="setDayType('weekday')" class="toggle-btn px-3 py-1 rounded-md active-day">平日</button>
+                <button id="btn-holiday" onclick="setDayType('holiday')" class="toggle-btn px-3 py-1 rounded-md">土休日</button>
+            </div>
+            
+            <div id="current-clock" class="font-mono font-bold text-gray-500 text-xs">00:00:00</div>
         </div>
 
         <div id="top-zebra" class="h-6 w-full zebra-pattern opacity-0 transition-opacity duration-500"></div>
 
         <div class="flex-grow flex flex-col items-center justify-center px-4 text-center">
-            <h1 class="text-xl font-black mb-0.5 opacity-40 italic">SUZURANDAI STATION</h1>
+            <h1 id="station-main-title" class="text-2xl font-black mb-0.5 opacity-30 italic">鈴蘭台 駅</h1>
             <div id="train-type-label" class="text-2xl font-black italic tracking-tighter transition-all">---</div>
-            <p id="warning-text" class="text-lg font-bold mb-1 tracking-[0.4em] hidden text-red-600">WARNING</p>
+            
+            <p id="warning-text" class="text-lg font-bold mb-1 tracking-[0.4em] hidden text-red-600">警告：急いでください</p>
             <p id="timer-label" class="text-xs font-bold tracking-[0.4em] text-gray-400 mt-4 mb-[-10px]">発車まで あと</p>
 
             <div id="timer-display" class="condensed-font text-[90px] sm:text-[110px] leading-none font-bold transition-colors">
@@ -48,39 +57,66 @@
 
     <div id="ad-container" class="fixed bottom-0 left-0 w-full h-[80px] bg-white flex items-center p-3 border-t-2 border-gray-100 z-50">
         <div class="w-12 h-12 rounded-lg flex items-center justify-center text-white mr-3 bg-[#e60012]">
-            <i data-lucide="shopping-bag"></i>
+            <i data-lucide="shopping-cart"></i>
         </div>
         <div class="flex-grow text-left">
-            <p class="text-[9px] font-bold text-red-600">BELLST SUZURANDAI</p>
-            <p class="text-xs font-bold leading-tight" id="ad-text">駅直結ベルスト鈴蘭台で<br>お買い物をお楽しみください</p>
+            <p class="text-[9px] font-bold text-red-600" id="ad-category">ベルスト鈴蘭台 情報</p>
+            <p class="text-xs font-bold leading-tight" id="ad-text">発車まで時間がある時は<br>駅直結ビルでお買い物！</p>
         </div>
+        <button class="bg-[#e60012] text-white px-3 py-2 rounded-lg text-[10px] font-bold shadow-sm">詳細</button>
     </div>
 
     <script>
-        // 鈴蘭台駅 新開地方面 平日日中ダイヤ抜粋 (種別: 0=普通, 1=準急, 2=急行)
-        // 本来はAPIから取りますが、デモ用に主要な時間帯のパターンをセット
-        const TIMETABLE = [];
+        // 平日ダイヤのパターン（毎時：普通4本、準急2本など）
+        const weekdaySchedule = [];
         for(let h=5; h<=23; h++) {
-            // 神鉄の典型的なパターン（毎時：普通4本、準急2本など）
-            TIMETABLE.push({h, m: 2, type: "普通", color: "#333"});
-            TIMETABLE.push({h, m: 12, type: "準急", color: "#448833"});
-            TIMETABLE.push({h, m: 22, type: "普通", color: "#333"});
-            TIMETABLE.push({h, m: 32, type: "急行", color: "#f39700"});
-            TIMETABLE.push({h, m: 42, type: "普通", color: "#333"});
-            TIMETABLE.push({h, m: 52, type: "準急", color: "#448833"});
+            weekdaySchedule.push({h, m: 2, type: "普通", color: "#333"});
+            weekdaySchedule.push({h, m: 12, type: "準急", color: "#448833"});
+            weekdaySchedule.push({h, m: 22, type: "普通", color: "#333"});
+            weekdaySchedule.push({h, m: 32, type: "急行", color: "#f39700"});
+            weekdaySchedule.push({h, m: 42, type: "普通", color: "#333"});
+            weekdaySchedule.push({h, m: 52, type: "準急", color: "#448833"});
         }
 
+        // 休日ダイヤのパターン（毎時：普通3本、準急3本など 少し間隔が変わる想定）
+        const holidaySchedule = [];
+        for(let h=5; h<=23; h++) {
+            holidaySchedule.push({h, m: 5, type: "普通", color: "#333"});
+            holidaySchedule.push({h, m: 20, type: "準急", color: "#448833"});
+            holidaySchedule.push({h, m: 35, type: "普通", color: "#333"});
+            holidaySchedule.push({h, m: 50, type: "準急", color: "#448833"});
+        }
+
+        let currentMode = 'weekday';
         let selectedTrainIdx = 0;
         let upcomingTrains = [];
+
+        function setDayType(type) {
+            currentMode = type;
+            document.getElementById('btn-weekday').classList.toggle('active-day', type === 'weekday');
+            document.getElementById('btn-holiday').classList.toggle('active-day', type === 'holiday');
+            
+            // 広告テキストも切り替えて「芸の細かさ」を見せる
+            const adLabel = document.getElementById('ad-category');
+            const adText = document.getElementById('ad-text');
+            if(type === 'holiday') {
+                adLabel.innerText = "休日お出かけキャンペーン";
+                adText.innerHTML = "土日は新開地から先、<br>阪急・阪神へのお得な乗車券も！";
+            } else {
+                adLabel.innerText = "ベルスト鈴蘭台 情報";
+                adText.innerHTML = "発車まで時間がある時は<br>駅直結ビルでお買い物！";
+            }
+            
+            updateTimetable();
+        }
 
         function updateTimetable() {
             const now = new Date();
             const currentTotalSeconds = now.getHours() * 3600 + now.getMinutes() * 60 + now.getSeconds();
+            const activeSchedule = currentMode === 'weekday' ? weekdaySchedule : holidaySchedule;
             
-            // 現在時刻以降の列車を3本抽出
-            upcomingTrains = TIMETABLE.filter(t => (t.h * 3600 + t.m * 60) > currentTotalSeconds).slice(0, 3);
+            upcomingTrains = activeSchedule.filter(t => (t.h * 3600 + t.m * 60) > currentTotalSeconds).slice(0, 3);
             
-            // リスト表示の更新
             const listContainer = document.getElementById('train-list');
             const labels = ["次便", "次々便", "次々々便"];
             listContainer.innerHTML = upcomingTrains.map((t, idx) => `
@@ -109,14 +145,12 @@
             const s = Math.max(0, Math.floor((diff % 60000) / 1000));
             const ms = Math.max(0, Math.floor((diff % 1000) / 10));
 
-            // テキスト反映
             document.getElementById('min').innerText = String(m).padStart(2, '0');
             document.getElementById('sec').innerText = String(s).padStart(2, '0');
             document.getElementById('ms').innerText = String(ms).padStart(2, '0');
             document.getElementById('train-type-label').innerText = target.type;
             document.getElementById('train-type-label').style.color = target.color;
 
-            // 背景色ロジック
             const body = document.body;
             const topZ = document.getElementById('top-zebra');
             const botZ = document.getElementById('bottom-zebra');
@@ -139,7 +173,7 @@
                 timer.style.color = target.color;
             }
 
-            if (diff <= 0) updateTimetable(); // 発車したら更新
+            if (diff <= -1000) updateTimetable(); 
         }
 
         setInterval(updateDisplay, 50);
