@@ -6,13 +6,18 @@
     <title>鈴蘭台駅タイマー</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@700&family=Orbitron:wght@700;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Archivo+Narrow:wght@700&display=swap" rel="stylesheet">
     <style>
-        body { font-family: 'Chakra Petch', sans-serif; transition: background-color 0.5s, color 0.5s; }
-        /* タイマー専用のデジタルフォント設定 */
-        .digital-font {
-            font-family: 'Orbitron', sans-serif;
-            font-variant-numeric: tabular-nums; /* 数字の幅を一定にする */
+        body { 
+            font-family: 'Helvetica Neue', Arial, sans-serif; 
+            transition: background-color 0.5s, color 0.5s; 
+            margin: 0;
+            overflow: hidden;
+        }
+        .condensed-font {
+            font-family: 'Archivo Narrow', sans-serif;
+            transform: scaleX(0.85); /* 縦長感をさらに強調 */
+            letter-spacing: -0.05em;
         }
         .zebra-pattern {
             background: linear-gradient(45deg, #FFD700 25%, #000 25%, #000 50%, #FFD700 50%, #FFD700 75%, #000 75%, #000);
@@ -21,40 +26,39 @@
     </style>
 </head>
 <body class="bg-white text-black">
-    <div id="app" class="min-h-screen flex flex-col justify-between overflow-hidden relative">
+    <div id="app" class="h-screen flex flex-col justify-between relative">
         <div id="top-zebra" class="h-8 w-full zebra-pattern opacity-0 transition-opacity duration-500"></div>
 
-        <div class="flex-grow flex flex-col items-center justify-center px-6 text-center">
-            <div id="icon-container" class="mb-4 opacity-0 scale-0 transition-all duration-500">
-                <i data-lucide="alert-triangle" class="w-24 h-24 mx-auto"></i>
+        <div class="flex-grow flex flex-col items-center justify-center px-4 text-center">
+            <div id="icon-container" class="mb-2 opacity-0 h-0 overflow-hidden transition-all duration-500">
+                <i data-lucide="alert-triangle" class="w-32 h-32 mx-auto"></i>
             </div>
             
-            <h1 id="status-label" class="text-4xl font-black tracking-widest mb-1 transition-all">結前会</h1>
-            <p id="warning-text" class="text-xl font-bold mb-6 tracking-[0.3em] hidden">WARNING</p>
+            <h1 id="status-label" class="text-5xl font-black tracking-widest mb-1 transition-all">新開地行</h1>
+            <p id="warning-text" class="text-xl font-bold mb-4 tracking-[0.4em] hidden">WARNING</p>
             
-            <div id="timer-display" class="digital-font text-[70px] sm:text-[85px] leading-none font-bold tracking-tighter flex items-baseline text-red-600 transition-colors">
-                <span id="min">00</span><span class="text-xl mx-1 font-sans">分</span>
-                <span id="sec">00</span><span class="text-xl mx-1 font-sans">秒</span>
-                <span class="text-xl">00</span>
+            <div id="timer-display" class="condensed-font text-[100px] sm:text-[120px] leading-none font-bold text-red-600 transition-colors flex items-baseline">
+                <span id="min">00</span><span class="text-2xl mx-1">分</span>
+                <span id="sec">00</span><span class="text-2xl mx-1">秒</span>
+                <span class="text-2xl">00</span>
             </div>
 
-            <div id="station-label" class="mt-8 px-6 py-1 rounded-full text-sm font-bold bg-red-600 text-white transition-all">
-                鈴蘭台駅（新開地方面）
+            <div id="station-label" class="mt-6 px-8 py-1.5 rounded-full text-sm font-bold bg-red-600 text-white transition-all">
+                鈴蘭台駅
             </div>
 
-            <p id="next-train-info" class="mt-10 text-lg font-bold opacity-80">次の発車 : --:--</p>
+            <p id="next-train-info" class="mt-8 text-xl font-bold opacity-80">次便の発車 : --:--</p>
         </div>
 
-        <div class="flex gap-4 p-8 max-w-sm mx-auto w-full z-10">
-            <button id="btn-weekday" onclick="setMode('weekday')" class="flex-1 py-3 rounded-2xl font-bold border-2 transition-all">平日</button>
-            <button id="btn-holiday" onclick="setMode('holiday')" class="flex-1 py-3 rounded-2xl font-bold border-2 transition-all">土休日</button>
+        <div class="flex gap-4 p-8 max-w-sm mx-auto w-full">
+            <button id="btn-weekday" onclick="setMode('weekday')" class="flex-1 py-4 rounded-2xl font-bold border-2 transition-all">平日</button>
+            <button id="btn-holiday" onclick="setMode('holiday')" class="flex-1 py-4 rounded-2xl font-bold border-2 transition-all">土休日</button>
         </div>
 
         <div id="bottom-zebra" class="h-10 w-full zebra-pattern opacity-0 transition-opacity duration-500"></div>
     </div>
 
     <script>
-        // ... (スクリプト部分は前回と同じですので、そのままお使いください)
         const TIMETABLE = {
             weekday: ["05:15", "05:35", "05:55", "06:12", "06:25", "06:38", "06:51", "07:04", "07:17", "07:30", "07:45", "08:00", "08:15", "08:30", "08:45", "09:00", "09:15", "09:30", "09:45", "10:00", "10:15", "10:30", "10:45", "11:00", "11:15", "11:30", "11:45", "12:00", "12:15", "12:30", "12:45", "13:00", "13:15", "13:30", "13:45", "14:00", "14:15", "14:30", "14:45", "15:00", "15:15", "15:30", "15:45", "16:00", "16:15", "16:30", "16:45", "17:00", "17:15", "17:30", "17:45", "18:00", "18:15", "18:30", "18:45", "19:00", "19:15", "19:30", "19:45", "20:00", "20:15", "20:30", "20:45", "21:00", "21:15", "21:30", "21:45", "22:00", "22:15", "22:30", "22:45", "23:00", "23:15", "23:30", "23:45"],
             holiday: ["05:15", "05:40", "06:05", "06:30", "06:55", "07:15", "07:35", "07:55", "08:15", "08:35", "08:55", "09:15", "09:35", "09:55", "10:15", "10:35", "10:55", "11:15", "11:35", "11:55", "12:15", "12:35", "12:55", "13:15", "13:35", "13:55", "14:15", "14:35", "14:55", "15:15", "15:35", "15:55", "16:15", "16:35", "16:55", "17:15", "17:35", "17:55", "18:15", "18:35", "18:55", "19:15", "19:35", "19:55", "20:15", "20:35", "20:55", "21:15", "21:35", "21:55", "22:15", "22:35", "22:55", "23:15", "23:35", "23:55"]
@@ -80,14 +84,52 @@
             
             const diff = Math.floor((target - now) / 1000);
             
-            const els = {
-                min: document.getElementById('min'),
-                sec: document.getElementById('sec'),
-                info: document.getElementById('next-train-info'),
-                body: document.body,
-                topZ: document.getElementById('top-zebra'),
-                botZ: document.getElementById('bottom-zebra'),
-                icon: document.getElementById('icon-container'),
-                warn: document.getElementById('warning-text'),
-                label: document.getElementById('status-label'),
-                timer: document.getElementById
+            document.getElementById('min').innerText = Math.floor(diff / 60).toString().padStart(2, '0');
+            document.getElementById('sec').innerText = (diff % 60).toString().padStart(2, '0');
+            document.getElementById('next-train-info').innerText = "次便の発車 : " + next;
+
+            document.getElementById('btn-weekday').className = `flex-1 py-4 rounded-2xl font-bold border-2 ${currentMode === 'weekday' ? 'border-red-500 bg-white text-black shadow-md' : 'border-transparent bg-gray-200 text-gray-400 opacity-60'}`;
+            document.getElementById('btn-holiday').className = `flex-1 py-4 rounded-2xl font-bold border-2 ${currentMode === 'holiday' ? 'border-red-500 bg-white text-black shadow-md' : 'border-transparent bg-gray-200 text-gray-400 opacity-60'}`;
+
+            const body = document.body;
+            const topZ = document.getElementById('top-zebra');
+            const botZ = document.getElementById('bottom-zebra');
+            const icon = document.getElementById('icon-container');
+            const warn = document.getElementById('warning-text');
+            const label = document.getElementById('status-label');
+            const timer = document.getElementById('timer-display');
+            const station = document.getElementById('station-label');
+
+            if (diff <= 60) {
+                body.className = "bg-black text-white transition-all";
+                topZ.style.opacity = "1"; botZ.style.opacity = "1";
+                icon.className = "mb-2 opacity-100 h-32 transition-all";
+                warn.classList.remove('hidden');
+                label.innerText = "警告"; // 修正
+                timer.className = "condensed-font text-[100px] sm:text-[120px] font-bold text-white transition-colors flex items-baseline";
+                station.className = "mt-6 px-8 py-1.5 rounded-full text-sm font-bold bg-transparent border border-white text-gray-400";
+            } else if (diff <= 300) {
+                body.className = "bg-[#FFD700] text-black transition-all";
+                topZ.style.opacity = "1"; botZ.style.opacity = "1";
+                icon.className = "mb-2 opacity-100 h-32 transition-all";
+                warn.classList.remove('hidden');
+                label.innerText = "警告"; // 修正
+                timer.className = "condensed-font text-[100px] sm:text-[120px] font-bold text-red-600 transition-colors flex items-baseline";
+                station.className = "mt-6 px-8 py-1.5 rounded-full text-sm font-bold bg-white/40 text-black";
+            } else {
+                body.className = "bg-white text-black transition-all";
+                topZ.style.opacity = "0"; botZ.style.opacity = "0";
+                icon.className = "mb-2 opacity-0 h-0 overflow-hidden transition-all";
+                warn.classList.add('hidden');
+                label.innerText = "新開地行"; // 修正
+                timer.className = "condensed-font text-[100px] sm:text-[120px] font-bold text-red-600 transition-colors flex items-baseline";
+                station.className = "mt-6 px-8 py-1.5 rounded-full text-sm font-bold bg-red-600 text-white";
+            }
+        }
+
+        lucide.createIcons();
+        setInterval(updateUI, 1000);
+        updateUI();
+    </script>
+</body>
+</html>
