@@ -3,148 +3,141 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>鈴蘭台 爆走タイマー</title>
+    <title>鈴蘭台駅タイマー</title>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Bangers&family=Noto+Sans+JP:wght@900&display=swap');
-
         :root {
-            --comic-yellow: #ffee00;
-            --comic-red: #ff3300;
-            --comic-blue: #0088ff;
-            --border-width: 4px;
+            --shintetsu-red: #d62828;
+            --bg-color: #f0f2f5;
+            --card-bg: #ffffff;
         }
 
-        /* 1分を切った時に body に付与するクラス */
+        /* 1分を切った時にグレーにする */
         body.last-minute {
-            filter: grayscale(100%); /* 全体をグレーにする */
-            transition: filter 0.5s ease-in-out;
+            filter: grayscale(100%);
+            --shintetsu-red: #333;
         }
 
         body {
             margin: 0;
-            background: radial-gradient(circle, #333 10%, transparent 10%), #555;
-            background-size: 20px 20px;
+            padding: 20px;
+            font-family: -apple-system, BlinkMacSystemFont, "Helvetica Neue", "Hiragino Kaku Gothic ProN", "Meiryo", sans-serif;
+            background-color: var(--bg-color);
             display: flex;
             justify-content: center;
             align-items: center;
             min-height: 100vh;
-            font-family: 'Noto Sans JP', sans-serif;
-            overflow: hidden;
             transition: filter 0.5s ease-in-out;
         }
 
         .app-container {
-            width: 90%;
-            max-width: 420px;
-            transform: rotate(-2deg);
+            width: 100%;
+            max-width: 400px;
         }
 
-        .comic-panel {
-            background: var(--comic-yellow);
-            border: var(--border-width) solid #000;
-            padding: 20px;
-            box-shadow: 15px 15px 0px #000;
-            position: relative;
+        .card {
+            background: var(--card-bg);
+            border-radius: 24px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+            text-align: center;
         }
 
-        .station-box {
-            background: #000;
-            color: #fff;
-            padding: 5px 15px;
+        .station-name {
+            font-size: 1.8rem;
+            font-weight: 800;
+            color: #333;
+            margin-bottom: 5px;
+        }
+
+        .destination {
             display: inline-block;
-            font-size: 1.2rem;
-            margin-bottom: 10px;
-            font-weight: bold;
-        }
-
-        .destination-tag {
-            background: var(--comic-blue);
+            background: var(--shintetsu-red);
             color: white;
-            padding: 2px 10px;
-            border: 2px solid #000;
-            font-size: 0.9rem;
-            display: block;
-            width: fit-content;
+            padding: 4px 12px;
+            border-radius: 50px;
+            font-size: 0.85rem;
             margin-bottom: 20px;
+            transition: background 0.5s;
         }
 
-        .label-main {
-            font-family: 'Bangers', cursive;
-            font-size: 2.5rem;
-            color: #000;
-            margin: 0;
-            line-height: 1;
-        }
-
+        /* カウントダウン表示 */
         #timer {
-            font-family: 'Bangers', cursive;
-            font-size: 5.5rem;
-            color: var(--comic-red);
-            text-shadow: 4px 4px 0px #000;
-            margin: 10px 0;
-            transition: all 0.2s ease-in-out;
-            display: block;
-            white-space: nowrap;
-        }
-
-        /* 5分を切った時の巨大化と震え */
-        #timer.hurry {
-            font-size: 8.5rem;
-            transform: scale(1.1) rotate(2deg);
-            animation: shake 0.1s infinite;
-        }
-
-        @keyframes shake {
-            0% { transform: translate(1px, 1px) rotate(2deg); }
-            50% { transform: translate(-1px, -1px) rotate(2deg); }
-            100% { transform: translate(1px, -1px) rotate(2deg); }
-        }
-
-        #next-train-info {
-            background: #fff;
-            border: 3px solid #000;
+            font-size: 4.5rem; /* 通常サイズ */
             font-weight: 900;
-            padding: 5px;
-            margin-top: 20px;
-            transform: skew(-10deg);
+            color: var(--shintetsu-red);
+            line-height: 1.2;
+            margin: 20px 0;
+            font-variant-numeric: tabular-nums;
+            transition: all 0.3s ease-in-out;
+        }
+
+        .unit {
+            font-size: 1rem;
+            color: #999;
+            margin: 0 2px;
+        }
+
+        /* 5分を切った時の巨大化 */
+        #timer.hurry {
+            font-size: 6.5rem;
+            transform: scale(1.1);
+        }
+
+        #next-train {
+            font-size: 1.1rem;
+            color: #444;
+            font-weight: 600;
+            background: #f8f9fa;
+            padding: 10px;
+            border-radius: 10px;
+            margin-bottom: 25px;
         }
 
         .btn-group {
-            margin-top: 25px;
             display: flex;
             gap: 10px;
+            background: #f0f0f0;
+            padding: 5px;
+            border-radius: 12px;
         }
 
         button {
             flex: 1;
-            font-family: 'Bangers', cursive;
-            font-size: 1.5rem;
-            padding: 10px;
-            border: 3px solid #000;
+            border: none;
+            padding: 12px;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            font-weight: bold;
             cursor: pointer;
-            box-shadow: 4px 4px 0px #000;
+            transition: 0.2s;
         }
 
-        button.active { background: var(--comic-red); color: white; }
-        button.inactive { background: #fff; color: #000; }
+        button.active {
+            background: white;
+            color: var(--shintetsu-red);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        button.inactive {
+            background: transparent;
+            color: #888;
+        }
     </style>
 </head>
 <body>
 
 <div class="app-container">
-    <div class="comic-panel">
-        <div class="station-box">鈴蘭台</div>
-        <div class="destination-tag">新開地方面</div>
-        
-        <p class="label-main">NEXT TRAIN IN...</p>
-        
-        <div id="timer">00:00:00</div>
-        
-        <div id="next-train-info">DEPARTURE: --:--</div>
+    <div class="card">
+        <div class="station-name">鈴蘭台</div>
+        <div class="destination">新開地方面</div>
+
+        <div id="timer">00<span class="unit">分</span>00<span class="unit">秒</span>00</div>
+
+        <div id="next-train">次回の発車: --:--</div>
 
         <div class="btn-group">
-            <button id="btn-weekday" class="active" onclick="setMode('weekday')">WEEKDAY</button>
-            <button id="btn-holiday" class="inactive" onclick="setMode('holiday')">HOLIDAY</button>
+            <button id="btn-weekday" class="active" onclick="setMode('weekday')">平日</button>
+            <button id="btn-holiday" class="inactive" onclick="setMode('holiday')">土休日</button>
         </div>
     </div>
 </div>
@@ -159,4 +152,51 @@
 
     function setMode(mode) {
         currentMode = mode;
-        document.getElementById('btn-weekday').className = (mode === 'weekday') ? 'active'
+        document.getElementById('btn-weekday').className = (mode === 'weekday') ? 'active' : 'inactive';
+        document.getElementById('btn-holiday').className = (mode === 'holiday') ? 'active' : 'inactive';
+    }
+
+    function updateTimer() {
+        const now = new Date();
+        const nowStr = now.getHours().toString().padStart(2, '0') + ":" + now.getMinutes().toString().padStart(2, '0');
+        
+        const timetable = schedules[currentMode];
+        let next = timetable.find(t => t > nowStr) || timetable[0];
+        
+        const [h, m] = next.split(':').map(Number);
+        const target = new Date();
+        target.setHours(h, m, 0);
+        target.setMilliseconds(0);
+        if (target < now) target.setDate(target.getDate() + 1);
+        
+        const diffMs = target - now;
+        const min = Math.floor(diffMs / 60000);
+        const sec = Math.floor((diffMs % 60000) / 1000);
+        const ms = Math.floor((diffMs % 1000) / 10);
+
+        const timerEl = document.getElementById('timer');
+        timerEl.innerHTML = `${min.toString().padStart(2, '0')}<span class="unit">分</span>${sec.toString().padStart(2, '0')}<span class="unit">秒</span>${ms.toString().padStart(2, '0')}`;
+        
+        // 5分（300,000ミリ秒）を切ったら巨大化
+        if (diffMs < 300000) {
+            timerEl.className = 'hurry';
+        } else {
+            timerEl.className = '';
+        }
+
+        // 1分（60,000ミリ秒）を切ったらグレーにする
+        if (diffMs < 60000) {
+            document.body.classList.add('last-minute');
+        } else {
+            document.body.classList.remove('last-minute');
+        }
+
+        document.getElementById('next-train').innerText = `次回の発車: ${next}`;
+    }
+
+    setMode(currentMode);
+    setInterval(updateTimer, 50);
+</script>
+
+</body>
+</html>
