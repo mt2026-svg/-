@@ -8,43 +8,44 @@
     <script src="https://unpkg.com/lucide@latest"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@700;800&display=swap');
-        body { font-family: 'JetBrains Mono', monospace; }
+        body { font-family: 'JetBrains Mono', monospace; transition: background-color 0.5s, color 0.5s; }
         .zebra-pattern {
             background: linear-gradient(45deg, #FFD700 25%, #000 25%, #000 50%, #FFD700 50%, #FFD700 75%, #000 75%, #000);
             background-size: 40px 40px;
         }
     </style>
 </head>
-<body class="transition-colors duration-500">
-    <div id="app" class="min-h-screen flex flex-col justify-between overflow-hidden">
-        <div id="top-zebra" class="h-8 w-full zebra-pattern hidden"></div>
+<body class="bg-white text-black">
+    <div id="app" class="min-h-screen flex flex-col justify-between overflow-hidden relative">
+        <div id="top-zebra" class="h-8 w-full zebra-pattern opacity-0 transition-opacity duration-500"></div>
 
-        <div class="flex-grow flex flex-col items-center justify-center px-6">
-            <div id="icon-container" class="mb-4 hidden">
-                <i data-lucide="alert-triangle" size="100" id="warning-icon"></i>
+        <div class="flex-grow flex flex-col items-center justify-center px-6 text-center">
+            <div id="icon-container" class="mb-4 opacity-0 scale-0 transition-all duration-500">
+                <i data-lucide="alert-triangle" class="w-24 h-24 mx-auto"></i>
             </div>
             
-            <h1 id="status-label" class="text-4xl font-black tracking-widest mb-2">結前会</h1>
+            <h1 id="status-label" class="text-4xl font-black tracking-widest mb-1 transition-all">結前会</h1>
             <p id="warning-text" class="text-xl font-bold mb-6 tracking-[0.3em] hidden">WARNING</p>
             
-            <div id="timer-display" class="text-[80px] leading-none font-bold tracking-tighter flex items-baseline">
+            <div id="timer-display" class="text-[75px] sm:text-[90px] leading-none font-bold tracking-tighter flex items-baseline text-red-600 transition-colors">
                 <span id="min">00</span><span class="text-2xl mx-1">分</span>
-                <span id="sec">00</span><span class="text-2xl mx-1">秒</span>00
+                <span id="sec">00</span><span class="text-2xl mx-1">秒</span>
+                <span class="text-2xl">00</span>
             </div>
 
-            <div id="station-label" class="mt-8 px-6 py-1 rounded-full text-sm font-bold bg-red-600 text-white">
+            <div id="station-label" class="mt-8 px-6 py-1 rounded-full text-sm font-bold bg-red-600 text-white transition-all">
                 鈴蘭台駅（新開地方面）
             </div>
 
-            <p id="next-train-info" class="mt-10 text-lg font-bold">次便の発車 : --:--</p>
+            <p id="next-train-info" class="mt-10 text-lg font-bold opacity-80">次便の発車 : --:--</p>
         </div>
 
         <div class="flex gap-4 p-8 max-w-sm mx-auto w-full z-10">
-            <button id="btn-weekday" onclick="setMode('weekday')" class="flex-1 py-3 rounded-2xl font-bold border-2 border-red-500 bg-white text-black shadow-lg">平日</button>
-            <button id="btn-holiday" onclick="setMode('holiday')" class="flex-1 py-3 rounded-2xl font-bold border-2 border-transparent bg-gray-200 text-gray-500">土休日</button>
+            <button id="btn-weekday" onclick="setMode('weekday')" class="flex-1 py-3 rounded-2xl font-bold border-2 transition-all">平日</button>
+            <button id="btn-holiday" onclick="setMode('holiday')" class="flex-1 py-3 rounded-2xl font-bold border-2 transition-all">土休日</button>
         </div>
 
-        <div id="bottom-zebra" class="h-10 w-full zebra-pattern hidden"></div>
+        <div id="bottom-zebra" class="h-10 w-full zebra-pattern opacity-0 transition-opacity duration-500"></div>
     </div>
 
     <script>
@@ -53,16 +54,14 @@
             holiday: ["05:15", "05:40", "06:05", "06:30", "06:55", "07:15", "07:35", "07:55", "08:15", "08:35", "08:55", "09:15", "09:35", "09:55", "10:15", "10:35", "10:55", "11:15", "11:35", "11:55", "12:15", "12:35", "12:55", "13:15", "13:35", "13:55", "14:15", "14:35", "14:55", "15:15", "15:35", "15:55", "16:15", "16:35", "16:55", "17:15", "17:35", "17:55", "18:15", "18:35", "18:55", "19:15", "19:35", "19:55", "20:15", "20:35", "20:55", "21:15", "21:35", "21:55", "22:15", "22:35", "22:55", "23:15", "23:35", "23:55"]
         };
 
-        let currentMode = 'holiday'; // 日曜日なのでデフォルト
-        
+        let currentMode = (new Date().getDay() === 0 || new Date().getDay() === 6) ? 'holiday' : 'weekday';
+
         function setMode(mode) {
             currentMode = mode;
-            document.getElementById('btn-weekday').className = mode === 'weekday' ? 'flex-1 py-3 rounded-2xl font-bold border-2 border-red-500 bg-white text-black shadow-lg' : 'flex-1 py-3 rounded-2xl font-bold border-2 border-transparent bg-gray-200 text-gray-500 opacity-60';
-            document.getElementById('btn-holiday').className = mode === 'holiday' ? 'flex-1 py-3 rounded-2xl font-bold border-2 border-red-500 bg-white text-black shadow-lg' : 'flex-1 py-3 rounded-2xl font-bold border-2 border-transparent bg-gray-200 text-gray-500 opacity-60';
-            update();
+            updateUI();
         }
 
-        function update() {
+        function updateUI() {
             const now = new Date();
             const timeStr = now.getHours().toString().padStart(2, '0') + ":" + now.getMinutes().toString().padStart(2, '0');
             const schedule = TIMETABLE[currentMode];
@@ -71,3 +70,70 @@
             const [nh, nm] = next.split(':').map(Number);
             const target = new Date();
             target.setHours(nh, nm, 0, 0);
+            if (target < now) target.setDate(target.getDate() + 1);
+            
+            const diff = Math.floor((target - now) / 1000);
+            
+            // DOM要素
+            const els = {
+                min: document.getElementById('min'),
+                sec: document.getElementById('sec'),
+                info: document.getElementById('next-train-info'),
+                body: document.body,
+                topZ: document.getElementById('top-zebra'),
+                botZ: document.getElementById('bottom-zebra'),
+                icon: document.getElementById('icon-container'),
+                warn: document.getElementById('warning-text'),
+                label: document.getElementById('status-label'),
+                timer: document.getElementById('timer-display'),
+                station: document.getElementById('station-label'),
+                btnW: document.getElementById('btn-weekday'),
+                btnH: document.getElementById('btn-holiday')
+            };
+
+            els.min.innerText = Math.floor(diff / 60).toString().padStart(2, '0');
+            els.sec.innerText = (diff % 60).toString().padStart(2, '0');
+            els.info.innerText = "次便の発車 : " + next;
+
+            // ボタン状態
+            els.btnW.className = `flex-1 py-3 rounded-2xl font-bold border-2 ${currentMode === 'weekday' ? 'border-red-500 bg-white text-black' : 'border-transparent bg-gray-200 text-gray-400 opacity-60'}`;
+            els.btnH.className = `flex-1 py-3 rounded-2xl font-bold border-2 ${currentMode === 'holiday' ? 'border-red-500 bg-white text-black' : 'border-transparent bg-gray-200 text-gray-400 opacity-60'}`;
+
+            // 状態に応じたデザイン反映
+            if (diff <= 60) { // 1分前：黒
+                els.body.className = "bg-black text-white";
+                els.topZ.classList.replace('opacity-0', 'opacity-100');
+                els.botZ.classList.replace('opacity-0', 'opacity-100');
+                els.icon.className = "mb-4 opacity-100 scale-100 transition-all";
+                els.warn.classList.remove('hidden');
+                els.label.innerText = "警告";
+                els.timer.className = "text-[75px] sm:text-[90px] font-bold text-white tracking-tighter flex items-baseline transition-colors";
+                els.station.className = "mt-8 px-6 py-1 rounded-full text-sm font-bold bg-transparent border border-white text-gray-400";
+            } else if (diff <= 300) { // 5分前：黄
+                els.body.className = "bg-[#FFD700] text-black";
+                els.topZ.classList.replace('opacity-0', 'opacity-100');
+                els.botZ.classList.replace('opacity-0', 'opacity-100');
+                els.icon.className = "mb-4 opacity-100 scale-100 transition-all";
+                els.warn.classList.remove('hidden');
+                els.label.innerText = "警告";
+                els.timer.className = "text-[75px] sm:text-[90px] font-bold text-red-600 tracking-tighter flex items-baseline transition-colors";
+                els.station.className = "mt-8 px-6 py-1 rounded-full text-sm font-bold bg-white/40 text-black";
+            } else { // 通常：白
+                els.body.className = "bg-white text-black";
+                els.topZ.classList.replace('opacity-100', 'opacity-0');
+                els.botZ.classList.replace('opacity-100', 'opacity-0');
+                els.icon.className = "mb-4 opacity-0 scale-0 transition-all";
+                els.warn.classList.add('hidden');
+                els.label.innerText = "結前会";
+                els.timer.className = "text-[75px] sm:text-[90px] font-bold text-red-600 tracking-tighter flex items-baseline transition-colors";
+                els.station.className = "mt-8 px-6 py-1 rounded-full text-sm font-bold bg-red-600 text-white";
+            }
+        }
+
+        // 初期化とループ
+        lucide.createIcons();
+        setInterval(updateUI, 1000);
+        updateUI();
+    </script>
+</body>
+</html>
