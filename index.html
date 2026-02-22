@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>鈴蘭台駅 発車タイマー</title>
+    <style>
+        body { font-family: sans-serif; text-align: center; background: #f0f4f8; padding-top: 50px; }
+        .card { background: white; border-radius: 15px; padding: 20px; display: inline-block; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+        h1 { color: #333; font-size: 1.2rem; }
+        #timer { font-size: 3rem; font-weight: bold; color: #e63946; margin: 20px 0; }
+        #next-train { font-size: 1.1rem; color: #555; }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <h1>鈴蘭台駅（上り）<br>次の電車まで</h1>
+        <div id="timer">--:--</div>
+        <div id="next-train">読み込み中...</div>
+    </div>
+
+    <script>
+        // ★ここに鈴蘭台駅（上り）の時刻表データを入れます（例: 7時台、8時台...）
+        const timetable = [
+            "07:02", "07:12", "07:22", "07:32", "07:42", "07:52",
+            "08:02", "08:12", "08:22", "08:32", "08:42", "08:52",
+            "09:05", "09:20", "09:35", "09:50" 
+            // 実際にはここに1日分をカンマ区切りで入力します
+        ];
+
+        function updateTimer() {
+            const now = new Date();
+            const nowTime = now.getHours().toString().padStart(2, '0') + ":" + now.getMinutes().toString().padStart(2, '0');
+            
+            // 次の電車を探す
+            const next = timetable.find(t => t > nowTime) || timetable[0];
+            
+            // 残り時間を計算
+            const [h, m] = next.split(':').map(Number);
+            const target = new Date();
+            target.setHours(h, m, 0);
+            if (target < now) target.setDate(target.getDate() + 1);
+            
+            const diff = Math.floor((target - now) / 1000);
+            const min = Math.floor(diff / 60);
+            const sec = diff % 60;
+
+            document.getElementById('timer').innerText = `${min}:${sec.toString().padStart(2, '0')}`;
+            document.getElementById('next-train').innerText = `次回の発車時刻: ${next}`;
+        }
+
+        setInterval(updateTimer, 1000);
+        updateTimer();
+    </script>
+</body>
+</html>
