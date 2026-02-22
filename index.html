@@ -43,9 +43,9 @@
             
             <div id="timer-display" class="condensed-font text-[90px] sm:text-[110px] leading-none font-bold text-red-600 transition-colors">
                 <span id="min">00</span>
-                <span class="mx-1 opacity-50 text-[60px] sm:text-[80px]">份</span>
+                <span class="mx-1 opacity-50 text-[60px] sm:text-[60px]">分</span>
                 <span id="sec">00</span>
-                <span class="mx-1 opacity-50 text-[60px] sm:text-[80px]">秒</span>
+                <span class="mx-1 opacity-50 text-[60px] sm:text-[60px]">秒</span>
                 <span id="ms">00</span>
             </div>
 
@@ -98,7 +98,7 @@
             document.getElementById('min').innerText = m.toString().padStart(2, '0');
             document.getElementById('sec').innerText = s.toString().padStart(2, '0');
             document.getElementById('ms').innerText = ms.toString().padStart(2, '0');
-            document.getElementById('next-train-info').innerText = "次便の発車 : " + next;
+            document.getElementById('next-train-info').innerText = "次の発車 : " + next;
 
             // ボタン
             document.getElementById('btn-weekday').className = `flex-1 py-4 rounded-2xl font-bold border-2 ${currentMode === 'weekday' ? 'border-red-500 bg-white text-black shadow-md' : 'border-transparent bg-gray-200 text-gray-400 opacity-60'}`;
@@ -134,7 +134,7 @@
                 topZ.style.opacity = "0"; botZ.style.opacity = "0";
                 icon.className = "mb-2 opacity-0 h-0 overflow-hidden transition-all";
                 warn.classList.add('hidden');
-                label.innerText = "新開地行";
+                label.innerText = "次の電車";
                 timer.classList.replace('text-white', 'text-red-600');
                 station.className = "mt-6 px-8 py-1.5 rounded-full text-sm font-bold bg-red-600 text-white";
             }
