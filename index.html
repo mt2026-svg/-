@@ -1,57 +1,84 @@
 import React, { useState, useEffect } from 'react';
 import { AlertTriangle } from 'lucide-react';
 
-const TrainApp = () => {
-  const [time, setTime] = useState("00:00:00");
-  const [schedule, setSchedule] = useState("weekday"); // weekday or holiday
+// 鈴蘭台駅 新開地方面の簡易時刻表データ（例）
+const TIMETABLE = {
+  weekday: ["22:10", "22:25", "22:40", "22:55", "23:15", "23:35", "23:55"],
+  holiday: ["22:05", "22:25", "22:45", "23:05", "23:25", "23:45"]
+};
+
+const SuzurandaiTrainApp = () => {
+  const [now, setNow] = useState(new Date());
+  const [schedule, setSchedule] = useState('holiday'); // 今日は日曜日なのでholiday
+  const [nextTrain, setNextTrain] = useState("");
+  const [timeLeft, setTimeLeft] = useState(0);
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      const currentTime = new Date();
+      setNow(currentTime);
+
+      // 次の電車を検索
+      const currentHHMM = `${String(currentTime.getHours()).padStart(2, '0')}:${String(currentTime.getMinutes()).padStart(2, '0')}`;
+      const todaySchedule = TIMETABLE[schedule];
+      const next = todaySchedule.find(t => t > currentHHMM) || todaySchedule[0];
+      setNextTrain(next);
+
+      // 残り秒数を計算
+      const [nh, nm] = next.split(':').map(Number);
+      const nextDate = new Date();
+      nextDate.setHours(nh, nm, 0, 0);
+      if (nextDate < currentTime) nextDate.setDate(nextDate.getDate() + 1);
+      
+      const diff = Math.floor((nextDate - currentTime) / 1000);
+      setTimeLeft(diff);
+    }, 1000);
+
+    return () => clearInterval(timer);
+  }, [schedule]);
+
+  const m = Math.floor(timeLeft / 60).toString().padStart(2, '0');
+  const s = (timeLeft % 60).toString().padStart(2, '0');
+
+  // ステータス判定
+  let status = 'normal';
+  if (timeLeft <= 60) status = 'critical';
+  else if (timeLeft <= 300) status = 'warning';
+
+  const styles = {
+    normal: { bg: "bg-white", text: "text-red-600", title: "text-black", label: "結前会", icon: false, zebra: false },
+    warning: { bg: "bg-[#FFD700]", text: "text-red-600", title: "text-black", label: "請告", icon: true, zebra: true },
+    critical: { bg: "bg-black", text: "text-white", title: "text-white", label: "請告", icon: true, zebra: true }
+  };
+
+  const current = styles[status];
 
   return (
-    <div className="flex flex-col items-center justify-between min-h-screen bg-black text-white p-6 font-mono">
-      
-      {/* 上部：警告アイコンとタイトル */}
-      <div className="flex flex-col items-center mt-10">
-        <AlertTriangle size={80} className="text-white mb-2" strokeWidth={1.5} />
-        <h1 className="text-4xl tracking-widest font-bold">警告</h1>
-        <p className="text-sm mt-1 tracking-tighter text-gray-400">WARNING</p>
-      </div>
+    <div className={`flex flex-col items-center justify-between min-h-screen ${current.bg} transition-colors duration-500 font-mono overflow-hidden`}>
+      {current.zebra && <div className="w-full h-6 bg-black flex overflow-hidden">{[...Array(15)].map((_, i) => <div key={i} className="w-8 h-full bg-[#FFD700] -skew-x-[45deg] mr-4" />)}</div>}
 
-      {/* 中央：メインタイマー */}
-      <div className="flex flex-col items-center">
-        <div className="text-7xl font-bold tracking-tighter mb-2">
-          {time}
+      <div className="flex flex-col items-center flex-grow justify-center px-6">
+        {current.icon && <AlertTriangle size={100} className={`${status === 'critical' ? 'text-white' : 'text-black'} mb-2`} />}
+        <h1 className={`text-4xl font-black ${current.title} tracking-widest mb-1`}>{current.label}</h1>
+        {status === 'normal' && <div className="bg-red-600 text-white text-xs px-4 py-1 rounded-full mb-8">鈴蘭台駅（新開地方面）</div>}
+
+        <div className={`text-[84px] leading-none font-bold tracking-tighter flex items-baseline ${current.text}`}>
+          {m}<span className="text-2xl mx-1">分</span>{s}<span className="text-2xl mx-1">秒</span>00
         </div>
-        <p className="text-lg text-gray-300">新摂地前面</p>
         
-        {/* 進捗バー（目安） */}
-        <div className="w-64 h-1 bg-gray-800 mt-8 relative">
-          <div className="absolute top-0 left-0 w-1/2 h-full bg-gray-400"></div>
-        </div>
+        <p className={`mt-8 text-lg font-bold ${status === 'critical' ? 'text-gray-400' : 'text-black'}`}>
+          次便の発車 : {nextTrain}
+        </p>
       </div>
 
-      {/* 下部：次発情報と切替ボタン */}
-      <div className="w-full max-w-xs mb-10 flex flex-col items-center">
-        <div className="mb-8 text-center">
-          <p className="text-sm text-gray-400">次便の発先 : 07:45</p>
-        </div>
-
-        <div className="flex gap-4 w-full">
-          <button 
-            onClick={() => setSchedule('weekday')}
-            className={`flex-1 py-3 rounded-full border border-white transition-all ${schedule === 'weekday' ? 'bg-white text-black' : 'bg-transparent text-white opacity-50'}`}
-          >
-            平日
-          </button>
-          <button 
-            onClick={() => setSchedule('holiday')}
-            className={`flex-1 py-3 rounded-full border border-white transition-all ${schedule === 'holiday' ? 'bg-white text-black' : 'bg-transparent text-white opacity-50'}`}
-          >
-            土休日
-          </button>
-        </div>
+      <div className="w-full max-w-xs mb-10 flex gap-4 px-6">
+        <button onClick={() => setSchedule('weekday')} className={`flex-1 py-3 rounded-2xl font-bold border-2 ${schedule === 'weekday' ? 'bg-white text-black border-red-500' : 'bg-gray-200 text-gray-400'}`}>平日</button>
+        <button onClick={() => setSchedule('holiday')} className={`flex-1 py-3 rounded-2xl font-bold border-2 ${schedule === 'holiday' ? 'bg-white text-black border-red-500' : 'bg-gray-200 text-gray-400'}`}>土休日</button>
       </div>
 
+      {current.zebra && <div className="w-full h-8 bg-black flex overflow-hidden">{[...Array(15)].map((_, i) => <div key={i} className="w-8 h-full bg-[#FFD700] -skew-x-[45deg] mr-4" />)}</div>}
     </div>
   );
 };
 
-export default TrainApp;
+export default SuzurandaiTrainApp;
