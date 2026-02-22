@@ -1,25 +1,23 @@
 import React, { useState, useEffect } from 'react';
 import { AlertTriangle } from 'lucide-react';
 
-// 鈴蘭台駅 新開地方面の簡易時刻表データ（例）
+// 鈴蘭台駅 新開地方面の時刻表（一部抜粋）
 const TIMETABLE = {
   weekday: ["22:10", "22:25", "22:40", "22:55", "23:15", "23:35", "23:55"],
   holiday: ["22:05", "22:25", "22:45", "23:05", "23:25", "23:45"]
 };
 
 const SuzurandaiTrainApp = () => {
-  const [now, setNow] = useState(new Date());
-  const [schedule, setSchedule] = useState('holiday'); // 今日は日曜日なのでholiday
+  const [timeLeft, setTimeLeft] = useState(null);
   const [nextTrain, setNextTrain] = useState("");
-  const [timeLeft, setTimeLeft] = useState(0);
+  const [schedule, setSchedule] = useState('holiday'); // 現在の日曜日に合わせて初期値は土休日
 
   useEffect(() => {
-    const timer = setInterval(() => {
-      const currentTime = new Date();
-      setNow(currentTime);
-
+    const updateTimer = () => {
+      const now = new Date();
+      const currentHHMM = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+      
       // 次の電車を検索
-      const currentHHMM = `${String(currentTime.getHours()).padStart(2, '0')}:${String(currentTime.getMinutes()).padStart(2, '0')}`;
       const todaySchedule = TIMETABLE[schedule];
       const next = todaySchedule.find(t => t > currentHHMM) || todaySchedule[0];
       setNextTrain(next);
@@ -28,55 +26,124 @@ const SuzurandaiTrainApp = () => {
       const [nh, nm] = next.split(':').map(Number);
       const nextDate = new Date();
       nextDate.setHours(nh, nm, 0, 0);
-      if (nextDate < currentTime) nextDate.setDate(nextDate.getDate() + 1);
+      if (nextDate < now) nextDate.setDate(nextDate.getDate() + 1);
       
-      const diff = Math.floor((nextDate - currentTime) / 1000);
-      setTimeLeft(diff);
-    }, 1000);
+      setTimeLeft(Math.floor((nextDate - now) / 1000));
+    };
 
+    updateTimer();
+    const timer = setInterval(updateTimer, 1000);
     return () => clearInterval(timer);
   }, [schedule]);
+
+  if (timeLeft === null) return <div className="bg-black min-h-screen" />;
 
   const m = Math.floor(timeLeft / 60).toString().padStart(2, '0');
   const s = (timeLeft % 60).toString().padStart(2, '0');
 
-  // ステータス判定
-  let status = 'normal';
-  if (timeLeft <= 60) status = 'critical';
-  else if (timeLeft <= 300) status = 'warning';
+  // 画像のデザインに基づいた状態判定
+  let status = 'normal'; // 通常（白背景）
+  if (timeLeft <= 60) status = 'critical'; // 1分前（黒背景）
+  else if (timeLeft <= 300) status = 'warning'; // 5分前（黄背景）
 
+  // 各ステータスの完全再現用スタイル
   const styles = {
-    normal: { bg: "bg-white", text: "text-red-600", title: "text-black", label: "結前会", icon: false, zebra: false },
-    warning: { bg: "bg-[#FFD700]", text: "text-red-600", title: "text-black", label: "請告", icon: true, zebra: true },
-    critical: { bg: "bg-black", text: "text-white", title: "text-white", label: "請告", icon: true, zebra: true }
+    normal: {
+      bg: "bg-white",
+      timerText: "text-red-600",
+      titleText: "text-black",
+      labelText: "結前会",
+      showIcon: false,
+      zebra: false,
+      labelBg: "bg-red-600 text-white"
+    },
+    warning: {
+      bg: "bg-[#FFD700]", // 画像の鮮やかな黄色
+      timerText: "text-red-600",
+      titleText: "text-black",
+      labelText: "請告",
+      showIcon: true,
+      zebra: true,
+      labelBg: "bg-white/40 text-black"
+    },
+    critical: {
+      bg: "bg-black",
+      timerText: "text-white",
+      titleText: "text-white",
+      labelText: "請告",
+      showIcon: true,
+      zebra: true,
+      labelBg: "bg-transparent text-gray-400"
+    }
   };
 
   const current = styles[status];
 
   return (
     <div className={`flex flex-col items-center justify-between min-h-screen ${current.bg} transition-colors duration-500 font-mono overflow-hidden`}>
-      {current.zebra && <div className="w-full h-6 bg-black flex overflow-hidden">{[...Array(15)].map((_, i) => <div key={i} className="w-8 h-full bg-[#FFD700] -skew-x-[45deg] mr-4" />)}</div>}
+      
+      {/* 上部ゼブラ柄 */}
+      {current.zebra ? (
+        <div className="w-full h-8 bg-black flex overflow-hidden">
+          {[...Array(10)].map((_, i) => (
+            <div key={i} className="w-12 h-full bg-[#FFD700] -skew-x-[45deg] mr-6" />
+          ))}
+        </div>
+      ) : <div className="h-8" />}
 
+      {/* メイン表示エリア */}
       <div className="flex flex-col items-center flex-grow justify-center px-6">
-        {current.icon && <AlertTriangle size={100} className={`${status === 'critical' ? 'text-white' : 'text-black'} mb-2`} />}
-        <h1 className={`text-4xl font-black ${current.title} tracking-widest mb-1`}>{current.label}</h1>
-        {status === 'normal' && <div className="bg-red-600 text-white text-xs px-4 py-1 rounded-full mb-8">鈴蘭台駅（新開地方面）</div>}
+        {current.showIcon && <AlertTriangle size={110} className={`${status === 'critical' ? 'text-white' : 'text-black'} mb-4`} strokeWidth={1.5} />}
+        
+        <h1 className={`text-5xl font-black ${current.titleText} tracking-[0.2em] mb-1`}>{current.labelText}</h1>
+        {current.showIcon && <p className={`text-xl font-bold ${current.titleText} mb-6 tracking-widest`}>WARNING</p>}
 
-        <div className={`text-[84px] leading-none font-bold tracking-tighter flex items-baseline ${current.text}`}>
-          {m}<span className="text-2xl mx-1">分</span>{s}<span className="text-2xl mx-1">秒</span>00
+        {/* カウントダウン表示 */}
+        <div className={`text-[90px] leading-none font-bold tracking-tighter flex items-baseline ${current.timerText} drop-shadow-sm`}>
+          {m}<span className="text-2xl mx-1 font-normal">分</span>{s}<span className="text-2xl mx-1 font-normal">秒</span>00
         </div>
         
+        <div className={`mt-6 px-4 py-1 rounded-full text-sm font-bold ${current.labelBg}`}>
+          鈴蘭台駅（新開地方面）
+        </div>
+
+        {/* 進捗バー */}
+        <div className="w-72 h-2 mt-12 rounded-full bg-gray-300/30 overflow-hidden">
+          <div 
+            className={`h-full transition-all duration-1000 ${status === 'critical' ? 'bg-white' : 'bg-red-600'}`}
+            style={{ width: `${Math.max(0, (timeLeft / 900) * 100)}%` }} // 15分を100%として計算
+          ></div>
+        </div>
+
         <p className={`mt-8 text-lg font-bold ${status === 'critical' ? 'text-gray-400' : 'text-black'}`}>
           次便の発車 : {nextTrain}
         </p>
       </div>
 
-      <div className="w-full max-w-xs mb-10 flex gap-4 px-6">
-        <button onClick={() => setSchedule('weekday')} className={`flex-1 py-3 rounded-2xl font-bold border-2 ${schedule === 'weekday' ? 'bg-white text-black border-red-500' : 'bg-gray-200 text-gray-400'}`}>平日</button>
-        <button onClick={() => setSchedule('holiday')} className={`flex-1 py-3 rounded-2xl font-bold border-2 ${schedule === 'holiday' ? 'bg-white text-black border-red-500' : 'bg-gray-200 text-gray-400'}`}>土休日</button>
+      {/* 下部切り替えボタン */}
+      <div className="w-full max-w-xs mb-10 flex gap-4 px-6 z-10">
+        <button 
+          onClick={() => setSchedule('weekday')} 
+          className={`flex-1 py-3 rounded-2xl font-bold border-2 transition-all ${schedule === 'weekday' ? 'bg-white text-black border-red-500 shadow-lg' : 'bg-gray-200 text-gray-500 border-transparent opacity-60'}`}
+        >
+          平日
+        </button>
+        <button 
+          onClick={() => setSchedule('holiday')} 
+          className={`flex-1 py-3 rounded-2xl font-bold border-2 transition-all ${schedule === 'holiday' ? 'bg-white text-black border-red-500 shadow-lg' : 'bg-gray-200 text-gray-500 border-transparent opacity-60'}`}
+        >
+          土休日
+        </button>
       </div>
 
-      {current.zebra && <div className="w-full h-8 bg-black flex overflow-hidden">{[...Array(15)].map((_, i) => <div key={i} className="w-8 h-full bg-[#FFD700] -skew-x-[45deg] mr-4" />)}</div>}
+      {/* 下部ゼブラ柄 */}
+      {current.zebra ? (
+        <div className="w-full h-10 bg-black flex overflow-hidden">
+          {[...Array(10)].map((_, i) => (
+            <div key={i} className="w-12 h-full bg-[#FFD700] -skew-x-[45deg] mr-6" />
+          ))}
+        </div>
+      ) : <div className="h-10" />}
     </div>
   );
 };
