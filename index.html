@@ -1,202 +1,57 @@
-<!DOCTYPE html>
-<html lang="ja">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>鈴蘭台駅タイマー</title>
-    <style>
-        :root {
-            --shintetsu-red: #d62828;
-            --bg-color: #f0f2f5;
-            --card-bg: #ffffff;
-        }
+import React, { useState, useEffect } from 'react';
+import { AlertTriangle } from 'lucide-react';
 
-        /* 1分を切った時にグレーにする */
-        body.last-minute {
-            filter: grayscale(100%);
-            --shintetsu-red: #333;
-        }
+const TrainApp = () => {
+  const [time, setTime] = useState("00:00:00");
+  const [schedule, setSchedule] = useState("weekday"); // weekday or holiday
 
-        body {
-            margin: 0;
-            padding: 20px;
-            font-family: -apple-system, BlinkMacSystemFont, "Helvetica Neue", "Hiragino Kaku Gothic ProN", "Meiryo", sans-serif;
-            background-color: var(--bg-color);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
-            transition: filter 0.5s ease-in-out;
-        }
+  return (
+    <div className="flex flex-col items-center justify-between min-h-screen bg-black text-white p-6 font-mono">
+      
+      {/* 上部：警告アイコンとタイトル */}
+      <div className="flex flex-col items-center mt-10">
+        <AlertTriangle size={80} className="text-white mb-2" strokeWidth={1.5} />
+        <h1 className="text-4xl tracking-widest font-bold">警告</h1>
+        <p className="text-sm mt-1 tracking-tighter text-gray-400">WARNING</p>
+      </div>
 
-        .app-container {
-            width: 100%;
-            max-width: 400px;
-        }
-
-        .card {
-            background: var(--card-bg);
-            border-radius: 24px;
-            padding: 30px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.08);
-            text-align: center;
-        }
-
-        .station-name {
-            font-size: 1.8rem;
-            font-weight: 800;
-            color: #333;
-            margin-bottom: 5px;
-        }
-
-        .destination {
-            display: inline-block;
-            background: var(--shintetsu-red);
-            color: white;
-            padding: 4px 12px;
-            border-radius: 50px;
-            font-size: 0.85rem;
-            margin-bottom: 20px;
-            transition: background 0.5s;
-        }
-
-        /* カウントダウン表示 */
-        #timer {
-            font-size: 4.5rem; /* 通常サイズ */
-            font-weight: 900;
-            color: var(--shintetsu-red);
-            line-height: 1.2;
-            margin: 20px 0;
-            font-variant-numeric: tabular-nums;
-            transition: all 0.3s ease-in-out;
-        }
-
-        .unit {
-            font-size: 1rem;
-            color: #999;
-            margin: 0 2px;
-        }
-
-        /* 5分を切った時の巨大化 */
-        #timer.hurry {
-            font-size: 6.5rem;
-            transform: scale(1.1);
-        }
-
-        #next-train {
-            font-size: 1.1rem;
-            color: #444;
-            font-weight: 600;
-            background: #f8f9fa;
-            padding: 10px;
-            border-radius: 10px;
-            margin-bottom: 25px;
-        }
-
-        .btn-group {
-            display: flex;
-            gap: 10px;
-            background: #f0f0f0;
-            padding: 5px;
-            border-radius: 12px;
-        }
-
-        button {
-            flex: 1;
-            border: none;
-            padding: 12px;
-            border-radius: 8px;
-            font-size: 0.9rem;
-            font-weight: bold;
-            cursor: pointer;
-            transition: 0.2s;
-        }
-
-        button.active {
-            background: white;
-            color: var(--shintetsu-red);
-            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-        }
-
-        button.inactive {
-            background: transparent;
-            color: #888;
-        }
-    </style>
-</head>
-<body>
-
-<div class="app-container">
-    <div class="card">
-        <div class="station-name">鈴蘭台</div>
-        <div class="destination">新開地方面</div>
-
-        <div id="timer">00<span class="unit">分</span>00<span class="unit">秒</span>00</div>
-
-        <div id="next-train">次回の発車: --:--</div>
-
-        <div class="btn-group">
-            <button id="btn-weekday" class="active" onclick="setMode('weekday')">平日</button>
-            <button id="btn-holiday" class="inactive" onclick="setMode('holiday')">土休日</button>
+      {/* 中央：メインタイマー */}
+      <div className="flex flex-col items-center">
+        <div className="text-7xl font-bold tracking-tighter mb-2">
+          {time}
         </div>
+        <p className="text-lg text-gray-300">新摂地前面</p>
+        
+        {/* 進捗バー（目安） */}
+        <div className="w-64 h-1 bg-gray-800 mt-8 relative">
+          <div className="absolute top-0 left-0 w-1/2 h-full bg-gray-400"></div>
+        </div>
+      </div>
+
+      {/* 下部：次発情報と切替ボタン */}
+      <div className="w-full max-w-xs mb-10 flex flex-col items-center">
+        <div className="mb-8 text-center">
+          <p className="text-sm text-gray-400">次便の発先 : 07:45</p>
+        </div>
+
+        <div className="flex gap-4 w-full">
+          <button 
+            onClick={() => setSchedule('weekday')}
+            className={`flex-1 py-3 rounded-full border border-white transition-all ${schedule === 'weekday' ? 'bg-white text-black' : 'bg-transparent text-white opacity-50'}`}
+          >
+            平日
+          </button>
+          <button 
+            onClick={() => setSchedule('holiday')}
+            className={`flex-1 py-3 rounded-full border border-white transition-all ${schedule === 'holiday' ? 'bg-white text-black' : 'bg-transparent text-white opacity-50'}`}
+          >
+            土休日
+          </button>
+        </div>
+      </div>
+
     </div>
-</div>
+  );
+};
 
-<script>
-    const schedules = {
-        weekday: ["04:55", "05:13", "05:27", "05:40", "05:51", "06:01", "06:10", "06:18", "06:26", "06:33", "06:40", "06:47", "06:54", "07:01", "07:07", "07:13", "07:19", "07:25", "07:31", "07:37", "07:43", "07:49", "07:55", "08:01", "08:08", "08:15", "08:22", "08:30", "08:38", "08:46", "08:54", "09:02", "09:10", "09:18", "09:28", "09:38", "09:48", "09:58", "10:08", "10:23", "10:38", "10:53", "11:08", "11:23", "11:38", "11:53", "12:08", "12:23", "12:38", "12:53", "13:08", "13:23", "13:38", "13:53", "14:08", "14:23", "14:38", "14:53", "15:08", "15:23", "15:38", "15:53", "16:08", "16:21", "16:33", "16:45", "16:57", "17:09", "17:21", "17:33", "17:45", "17:57", "18:09", "18:21", "18:33", "18:45", "18:57", "19:09", "19:21", "19:33", "19:45", "19:57", "20:10", "20:25", "20:40", "20:55", "21:10", "21:25", "21:40", "21:55", "22:10", "22:25", "22:45", "23:05", "23:25", "23:45", "00:05"],
-        holiday: ["04:55", "05:13", "05:27", "05:40", "05:54", "06:07", "06:20", "06:33", "06:45", "06:57", "07:09", "07:21", "07:33", "07:45", "07:57", "08:09", "08:21", "08:33", "08:45", "08:57", "09:09", "09:23", "09:38", "09:53", "10:08", "10:23", "10:38", "10:53", "11:08", "11:23", "11:38", "11:53", "12:08", "12:23", "12:38", "12:53", "13:08", "13:23", "13:38", "13:53", "14:08", "14:23", "14:38", "14:53", "15:08", "15:23", "15:38", "15:53", "16:08", "16:23", "16:38", "16:53", "17:08", "17:23", "17:38", "17:53", "18:08", "18:23", "18:38", "18:53", "19:08", "19:23", "19:40", "19:55", "20:10", "20:25", "20:40", "20:55", "21:10", "21:25", "21:40", "21:55", "22:15", "22:35", "22:55", "23:15", "23:35", "23:55"]
-    };
-
-    let currentMode = (new Date().getDay() === 0 || new Date().getDay() === 6) ? 'holiday' : 'weekday';
-
-    function setMode(mode) {
-        currentMode = mode;
-        document.getElementById('btn-weekday').className = (mode === 'weekday') ? 'active' : 'inactive';
-        document.getElementById('btn-holiday').className = (mode === 'holiday') ? 'active' : 'inactive';
-    }
-
-    function updateTimer() {
-        const now = new Date();
-        const nowStr = now.getHours().toString().padStart(2, '0') + ":" + now.getMinutes().toString().padStart(2, '0');
-        
-        const timetable = schedules[currentMode];
-        let next = timetable.find(t => t > nowStr) || timetable[0];
-        
-        const [h, m] = next.split(':').map(Number);
-        const target = new Date();
-        target.setHours(h, m, 0);
-        target.setMilliseconds(0);
-        if (target < now) target.setDate(target.getDate() + 1);
-        
-        const diffMs = target - now;
-        const min = Math.floor(diffMs / 60000);
-        const sec = Math.floor((diffMs % 60000) / 1000);
-        const ms = Math.floor((diffMs % 1000) / 10);
-
-        const timerEl = document.getElementById('timer');
-        timerEl.innerHTML = `${min.toString().padStart(2, '0')}<span class="unit">分</span>${sec.toString().padStart(2, '0')}<span class="unit">秒</span>${ms.toString().padStart(2, '0')}`;
-        
-        // 5分（300,000ミリ秒）を切ったら巨大化
-        if (diffMs < 300000) {
-            timerEl.className = 'hurry';
-        } else {
-            timerEl.className = '';
-        }
-
-        // 1分（60,000ミリ秒）を切ったらグレーにする
-        if (diffMs < 60000) {
-            document.body.classList.add('last-minute');
-        } else {
-            document.body.classList.remove('last-minute');
-        }
-
-        document.getElementById('next-train').innerText = `次回の発車: ${next}`;
-    }
-
-    setMode(currentMode);
-    setInterval(updateTimer, 50);
-</script>
-
-</body>
-</html>
+export default TrainApp;
